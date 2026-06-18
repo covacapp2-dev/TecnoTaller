@@ -8,25 +8,28 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const session = AuthService.getSession();
-    if (session) setUser(session);
-    setLoading(false);
+    const checkSession = async () => {
+      const session = await AuthService.getSession();
+      if (session) setUser(session);
+      setLoading(false);
+    };
+    checkSession();
   }, []);
 
-  const login = (email, password) => {
-    const result = AuthService.login(email, password);
+  const login = async (email, password) => {
+    const result = await AuthService.login(email, password);
     if (result.success) setUser(result.user);
     return result;
   };
 
-  const register = (name, email, password) => {
-    const result = AuthService.register(name, email, password);
+  const register = async (name, email, password) => {
+    const result = await AuthService.register(name, email, password);
     if (result.success) setUser(result.user);
     return result;
   };
 
-  const logout = () => {
-    AuthService.logout();
+  const logout = async () => {
+    await AuthService.logout();
     setUser(null);
   };
 

@@ -5,7 +5,7 @@ import {
   Home, Wrench, Calendar, Bell, Car, History, ShoppingBag, DollarSign,
   Users, Package, UserCheck, Phone, BarChart3, FileText, Settings,
   LogOut, Menu, X, ChevronDown, ChevronRight, CreditCard, ClipboardList,
-  BookOpen, TrendingUp, AlertCircle
+  BookOpen, TrendingUp, AlertCircle, Hammer, Sliders
 } from 'lucide-react';
 
 const menuItems = [
@@ -28,8 +28,8 @@ const menuItems = [
   { path: '/contactos', label: 'Contactos', icon: Phone },
   { path: '/grafica', label: 'Gráfica', icon: BarChart3 },
   { path: '/informes', label: 'Informes', icon: FileText },
-  { path: '/herramientas', label: 'Herramientas', icon: Settings },
-  { path: '/configuracion', label: 'Configuración', icon: Settings },
+  { path: '/herramientas', label: 'Herramientas', icon: Hammer },
+  { path: '/configuracion', label: 'Configuración', icon: Sliders },
   { path: '/mi-cuenta', label: 'Mi Cuenta', icon: Users },
 ];
 
@@ -82,7 +82,7 @@ export default function Sidebar({ collapsed, onToggle }) {
           </button>
         </div>
 
-        <nav className="p-3 space-y-0.5">
+        <nav className="p-3 space-y-0.5 pb-20">
           {menuItems.map((item) => (
             <div key={item.label}>
               {item.children ? (

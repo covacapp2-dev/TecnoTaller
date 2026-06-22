@@ -62,7 +62,7 @@ export default function Sidebar({ collapsed, onToggle }) {
       )}
 
       <aside className={`fixed top-0 left-0 h-full bg-gradient-to-b from-primary-900 to-primary-950 text-white z-50 
-        transition-all duration-300 ease-in-out overflow-y-auto
+        transition-all duration-300 ease-in-out flex flex-col
         ${collapsed ? 'w-64 translate-x-0' : '-translate-x-full lg:translate-x-0 lg:w-[72px]'}`}
       >
         <div className="flex items-center justify-between p-4 border-b border-primary-700/50">
@@ -82,7 +82,7 @@ export default function Sidebar({ collapsed, onToggle }) {
           </button>
         </div>
 
-        <nav className="p-3 space-y-0.5 pb-20">
+        <nav className="flex-1 p-3 space-y-0.5 overflow-y-auto">
           {menuItems.map((item) => (
             <div key={item.label}>
               {item.children ? (
@@ -131,7 +131,7 @@ export default function Sidebar({ collapsed, onToggle }) {
           ))}
         </nav>
 
-        <div className="absolute bottom-0 left-0 right-0 p-3 border-t border-primary-700/50 bg-primary-950/80 backdrop-blur">
+        <div className="p-3 border-t border-primary-700/50">
           <button
             onClick={handleLogout}
             className="sidebar-link w-full text-red-300 hover:bg-red-500/20 hover:text-red-200"

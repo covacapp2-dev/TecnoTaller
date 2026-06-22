@@ -1,23 +1,40 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Search, Plus, UserCheck, Mail, Phone } from 'lucide-react';
-
-const workers = [
-  { id: 1, name: 'Carlos Méndez', role: 'Mecánico Principal', phone: '11-5555-0001', email: 'carlos@tecnotaller.com', status: 'activo', orders: 8 },
-  { id: 2, name: 'Luis Fernández', role: 'Mecánico', phone: '11-5555-0002', email: 'luis@tecnotaller.com', status: 'activo', orders: 6 },
-  { id: 3, name: 'Ana Ruiz', role: 'Recepcionista', phone: '11-5555-0003', email: 'ana@tecnotaller.com', status: 'activo', orders: 0 },
-  { id: 4, name: 'Miguel Torres', role: 'Electricista', phone: '11-5555-0004', email: 'miguel@tecnotaller.com', status: 'activo', orders: 4 },
-  { id: 5, name: 'Sandra López', role: 'Administrativa', phone: '11-5555-0005', email: 'sandra@tecnotaller.com', status: 'activo', orders: 0 },
-];
+import { supabase } from '../lib/supabase';
+import { useAuth } from '../context/AuthContext';
 
 export default function Trabajadores() {
+  const { user } = useAuth();
+  const [workers, setWorkers] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+
+  useEffect(() => {
+    loadWorkers();
+  }, []);
+
+  const loadWorkers = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('workers')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('name');
+
+      if (!error) setWorkers(data || []);
+    } catch (error) {
+      console.error('Error loading workers:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-800">Trabajadores</h1>
-          <p className="text-gray-500 text-sm mt-1">{workers.length} empleados activos</p>
+          <p className="text-gray-500 text-sm mt-1">{workers.length} empleados</p>
         </div>
         <button className="btn-primary flex items-center gap-2">
           <Plus className="w-4 h-4" />
@@ -37,33 +54,49 @@ export default function Trabajadores() {
           />
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {workers.map(w => (
-            <div key={w.id} className="border border-gray-200 rounded-xl p-5 hover:shadow-md hover:border-primary-200 transition-all">
-              <div className="flex items-center gap-3 mb-3">
-                <div className="w-12 h-12 bg-gradient-to-br from-primary-500 to-primary-600 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-md">
-                  {w.name.charAt(0)}
+        {loading ? (
+          <div className="text-center py-12">
+            <div className="w-8 h-8 border-4 border-primary-200 border-t-primary-600 rounded-full animate-spin mx-auto"></div>
+          </div>
+        ) : workers.length === 0 ? (
+          <div className="text-center py-12 text-gray-400">
+            <UserCheck className="w-12 h-12 mx-auto mb-3 opacity-40" />
+            <p>No hay trabajadores ainda</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {workers.map(w => (
+              <div key={w.id} className="border border-gray-200 rounded-xl p-5 hover:shadow-md hover:border-primary-200 transition-all">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-12 h-12 bg-gradient-to-br from-primary-500 to-primary-600 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-md">
+                    {w.name.charAt(0)}
+                  </div>
+                  <div>
+                    <p className="font-bold text-gray-800">{w.name}</p>
+                    <p className="text-xs text-primary-600 font-medium capitalize">{w.role}</p>
+                  </div>
                 </div>
-                <div>
-                  <p className="font-bold text-gray-800">{w.name}</p>
-                  <p className="text-xs text-primary-600 font-medium">{w.role}</p>
+                <div className="space-y-1.5 text-sm">
+                  {w.phone && (
+                    <p className="flex items-center gap-2 text-gray-600">
+                      <Phone className="w-3.5 h-3.5" /> {w.phone}
+                    </p>
+                  )}
+                  {w.email && (
+                    <p className="flex items-center gap-2 text-gray-600">
+                      <Mail className="w-3.5 h-3.5" /> {w.email}
+                    </p>
+                  )}
+                </div>
+                <div className="mt-4 pt-3 border-t border-gray-100">
+                  <span className="inline-flex items-center gap-1.5 text-xs font-medium text-emerald-600">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500"></span> Activo
+                  </span>
                 </div>
               </div>
-              <div className="space-y-1.5 text-sm">
-                <p className="flex items-center gap-2 text-gray-600">
-                  <Phone className="w-3.5 h-3.5" /> {w.phone}
-                </p>
-                <p className="flex items-center gap-2 text-gray-600">
-                  <Mail className="w-3.5 h-3.5" /> {w.email}
-                </p>
-              </div>
-              <div className="flex items-center justify-between mt-4 pt-3 border-t border-gray-100">
-                <span className="text-xs font-medium text-gray-500">{w.orders} órdenes asignadas</span>
-                <span className="inline-flex w-2 h-2 rounded-full bg-emerald-500"></span>
-              </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

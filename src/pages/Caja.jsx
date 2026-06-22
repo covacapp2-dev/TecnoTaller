@@ -1,18 +1,35 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { DollarSign, TrendingUp, TrendingDown, ArrowUpRight, ArrowDownRight, Plus } from 'lucide-react';
-
-const transactions = [
-  { id: 1, type: 'ingreso', description: 'Pago Orden #00145 - Toyota Corolla', amount: 185000, date: '18/06/2024', method: 'Efectivo' },
-  { id: 2, type: 'ingreso', description: 'Pago Orden #00141 - Honda Civic', amount: 320000, date: '17/06/2024', method: 'Transferencia' },
-  { id: 3, type: 'egreso', description: 'Compra aceites y filtros', amount: -85000, date: '17/06/2024', method: 'Efectivo' },
-  { id: 4, type: 'ingreso', description: 'Venta producto - Pastillas de freno', amount: 8900, date: '16/06/2024', method: 'Tarjeta' },
-  { id: 5, type: 'egreso', description: 'Sueldo mecánico', amount: -280000, date: '15/06/2024', method: 'Transferencia' },
-  { id: 6, type: 'ingreso', description: 'Pago Orden #00139 - Renault Clio', amount: 210000, date: '15/06/2024', method: 'Efectivo' },
-];
+import { supabase } from '../lib/supabase';
+import { useAuth } from '../context/AuthContext';
 
 export default function Caja() {
-  const totalIngresos = transactions.filter(t => t.type === 'ingreso').reduce((s, t) => s + t.amount, 0);
-  const totalEgresos = transactions.filter(t => t.type === 'egreso').reduce((s, t) => s + Math.abs(t.amount), 0);
+  const { user } = useAuth();
+  const [transactions, setTransactions] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadTransactions();
+  }, []);
+
+  const loadTransactions = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('cash_movements')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (!error) setTransactions(data || []);
+    } catch (error) {
+      console.error('Error loading transactions:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const totalIngresos = transactions.filter(t => t.type === 'ingreso').reduce((s, t) => s + Number(t.amount), 0);
+  const totalEgresos = transactions.filter(t => t.type === 'egreso').reduce((s, t) => s + Number(t.amount), 0);
   const balance = totalIngresos - totalEgresos;
 
   return (
@@ -63,42 +80,53 @@ export default function Caja() {
 
       <div className="card">
         <h2 className="text-lg font-bold text-gray-800 mb-4">Movimientos</h2>
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="table-header">
-                <th className="text-left px-4 py-3 rounded-l-lg">Tipo</th>
-                <th className="text-left px-4 py-3">Descripción</th>
-                <th className="text-left px-4 py-3">Fecha</th>
-                <th className="text-left px-4 py-3">Método</th>
-                <th className="text-right px-4 py-3 rounded-r-lg">Monto</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {transactions.map(t => (
-                <tr key={t.id} className="hover:bg-gray-50 transition-colors">
-                  <td className="px-4 py-3.5">
-                    {t.type === 'ingreso' ? (
-                      <span className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">
-                        <ArrowUpRight className="w-3 h-3" /> Ingreso
-                      </span>
-                    ) : (
-                      <span className="inline-flex items-center gap-1 text-xs font-semibold text-red-600 bg-red-50 px-2 py-0.5 rounded-full">
-                        <ArrowDownRight className="w-3 h-3" /> Egreso
-                      </span>
-                    )}
-                  </td>
-                  <td className="px-4 py-3.5 text-sm text-gray-700">{t.description}</td>
-                  <td className="px-4 py-3.5 text-sm text-gray-500">{t.date}</td>
-                  <td className="px-4 py-3.5 text-sm text-gray-500">{t.method}</td>
-                  <td className={`px-4 py-3.5 text-sm font-bold text-right ${t.amount > 0 ? 'text-emerald-600' : 'text-red-600'}`}>
-                    {t.amount > 0 ? '+' : ''}{t.amount.toLocaleString()}
-                  </td>
+        {loading ? (
+          <div className="text-center py-12">
+            <div className="w-8 h-8 border-4 border-primary-200 border-t-primary-600 rounded-full animate-spin mx-auto"></div>
+          </div>
+        ) : transactions.length === 0 ? (
+          <div className="text-center py-12 text-gray-400">
+            <DollarSign className="w-12 h-12 mx-auto mb-3 opacity-40" />
+            <p>No hay movimientos ainda</p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="table-header">
+                  <th className="text-left px-4 py-3 rounded-l-lg">Tipo</th>
+                  <th className="text-left px-4 py-3">Descripción</th>
+                  <th className="text-left px-4 py-3">Fecha</th>
+                  <th className="text-left px-4 py-3">Método</th>
+                  <th className="text-right px-4 py-3 rounded-r-lg">Monto</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {transactions.map(t => (
+                  <tr key={t.id} className="hover:bg-gray-50 transition-colors">
+                    <td className="px-4 py-3.5">
+                      {t.type === 'ingreso' ? (
+                        <span className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">
+                          <ArrowUpRight className="w-3 h-3" /> Ingreso
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 text-xs font-semibold text-red-600 bg-red-50 px-2 py-0.5 rounded-full">
+                          <ArrowDownRight className="w-3 h-3" /> Egreso
+                        </span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3.5 text-sm text-gray-700">{t.description}</td>
+                    <td className="px-4 py-3.5 text-sm text-gray-500">{new Date(t.created_at).toLocaleDateString('es-AR')}</td>
+                    <td className="px-4 py-3.5 text-sm text-gray-500 capitalize">{t.method}</td>
+                    <td className={`px-4 py-3.5 text-sm font-bold text-right ${t.type === 'ingreso' ? 'text-emerald-600' : 'text-red-600'}`}>
+                      {t.type === 'ingreso' ? '+' : '-'}${Number(t.amount).toLocaleString()}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
     </div>
   );

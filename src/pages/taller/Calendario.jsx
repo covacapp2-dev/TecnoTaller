@@ -1,13 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight, Plus } from 'lucide-react';
-
-const events = [
-  { id: 1, title: 'Cambio de aceite - Toyota Corolla', client: 'Juan Pérez', time: '09:00', date: '2024-06-18', type: 'servicio' },
-  { id: 2, title: 'Revisión general - Ford Fiesta', client: 'María García', time: '10:30', date: '2024-06-18', type: 'turno' },
-  { id: 3, title: 'Frenos - Chevrolet Onix', client: 'Carlos López', time: '14:00', date: '2024-06-19', type: 'servicio' },
-  { id: 4, title: 'Entrega - Volkswagen Gol', client: 'Ana Martínez', time: '16:00', date: '2024-06-19', type: 'entrega' },
-  { id: 5, title: 'Alineación - Honda Civic', client: 'Roberto Sánchez', time: '08:30', date: '2024-06-20', type: 'servicio' },
-];
+import { supabase } from '../../lib/supabase';
+import { useAuth } from '../../context/AuthContext';
 
 const days = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
 const typeColors = {
@@ -17,7 +11,26 @@ const typeColors = {
 };
 
 export default function Calendario() {
-  const [currentDate, setCurrentDate] = useState(new Date(2024, 5, 18));
+  const { user } = useAuth();
+  const [events, setEvents] = useState([]);
+  const [currentDate, setCurrentDate] = useState(new Date());
+
+  useEffect(() => {
+    loadEvents();
+  }, []);
+
+  const loadEvents = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('calendar_events')
+        .select('*')
+        .eq('user_id', user.id);
+
+      if (!error) setEvents(data || []);
+    } catch (error) {
+      console.error('Error loading events:', error);
+    }
+  };
 
   const getDaysInMonth = (date) => new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
   const getFirstDay = (date) => {
@@ -33,9 +46,11 @@ export default function Calendario() {
   const nextMonth = () => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1));
 
   const getEventsForDay = (day) => {
-    const dateStr = `2024-${String(currentDate.getMonth() + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-    return events.filter(e => e.date === dateStr);
+    const dateStr = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    return events.filter(e => e.event_date === dateStr);
   };
+
+  const today = new Date();
 
   return (
     <div className="space-y-6">
@@ -70,7 +85,7 @@ export default function Calendario() {
           {Array.from({ length: daysInMonth }).map((_, i) => {
             const day = i + 1;
             const dayEvents = getEventsForDay(day);
-            const isToday = day === 18 && currentDate.getMonth() === 5;
+            const isToday = day === today.getDate() && currentDate.getMonth() === today.getMonth() && currentDate.getFullYear() === today.getFullYear();
             return (
               <div key={day} className={`bg-white min-h-[100px] p-1.5 hover:bg-gray-50 transition-colors ${isToday ? 'ring-2 ring-primary-500 ring-inset' : ''}`}>
                 <span className={`text-xs font-semibold ${isToday ? 'bg-primary-600 text-white w-6 h-6 rounded-full flex items-center justify-center' : 'text-gray-600'}`}>
@@ -78,8 +93,8 @@ export default function Calendario() {
                 </span>
                 <div className="mt-1 space-y-0.5">
                   {dayEvents.slice(0, 2).map(evt => (
-                    <div key={evt.id} className={`text-[10px] border-l-2 ${typeColors[evt.type]} px-1 py-0.5 rounded-r truncate`}>
-                      {evt.time} {evt.client}
+                    <div key={evt.id} className={`text-[10px] border-l-2 ${typeColors[evt.type] || typeColors.servicio} px-1 py-0.5 rounded-r truncate`}>
+                      {evt.event_time} {evt.title}
                     </div>
                   ))}
                   {dayEvents.length > 2 && (
@@ -92,19 +107,21 @@ export default function Calendario() {
         </div>
       </div>
 
-      <div className="card">
-        <h3 className="text-sm font-bold text-gray-700 mb-3">Próximos eventos</h3>
-        <div className="space-y-2">
-          {events.slice(0, 5).map(evt => (
-            <div key={evt.id} className={`flex items-center gap-3 p-3 rounded-lg border-l-4 ${typeColors[evt.type]}`}>
-              <div>
-                <p className="text-sm font-medium text-gray-800">{evt.title}</p>
-                <p className="text-xs text-gray-500">{evt.time} - {evt.client}</p>
+      {events.length > 0 && (
+        <div className="card">
+          <h3 className="text-sm font-bold text-gray-700 mb-3">Próximos eventos</h3>
+          <div className="space-y-2">
+            {events.slice(0, 5).map(evt => (
+              <div key={evt.id} className={`flex items-center gap-3 p-3 rounded-lg border-l-4 ${typeColors[evt.type] || typeColors.servicio}`}>
+                <div>
+                  <p className="text-sm font-medium text-gray-800">{evt.title}</p>
+                  <p className="text-xs text-gray-500">{evt.event_time} - {evt.event_date}</p>
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

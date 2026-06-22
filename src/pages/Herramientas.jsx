@@ -1,4 +1,4 @@
-import { Wrench, Calculator, FileText, Users, Printer, Download } from 'lucide-react';
+import { Calculator, FileText, Users, Printer, Download } from 'lucide-react';
 
 const tools = [
   { id: 1, name: 'Calculadora de Presupuestos', description: 'Calcula automáticamente el total de un presupuesto con IVA y descuentos', icon: Calculator, color: 'from-blue-500 to-blue-600' },

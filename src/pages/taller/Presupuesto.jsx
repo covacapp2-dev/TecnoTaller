@@ -1,12 +1,7 @@
-import { useState } from 'react';
-import { Search, Calendar, Plus, FileText, Eye, Send, Download, Filter } from 'lucide-react';
-
-const budgets = [
-  { id: '#P001', client: 'Juan Pérez', vehicle: 'Toyota Corolla 2020', date: '18/06/2024', status: 'enviado', total: 185000, items: 4 },
-  { id: '#P002', client: 'María García', vehicle: 'Ford Fiesta 2019', date: '17/06/2024', status: 'borrador', total: 92000, items: 2 },
-  { id: '#P003', client: 'Carlos López', vehicle: 'Chevrolet Onix 2021', date: '16/06/2024', status: 'aprobado', total: 245000, items: 6 },
-  { id: '#P004', client: 'Laura Díaz', vehicle: 'Peugeot 208 2021', date: '15/06/2024', status: 'rechazado', total: 148000, items: 3 },
-];
+import { useState, useEffect } from 'react';
+import { Search, Calendar, Plus, Filter } from 'lucide-react';
+import { supabase } from '../../lib/supabase';
+import { useAuth } from '../../context/AuthContext';
 
 const statusColors = {
   borrador: 'bg-gray-100 text-gray-700',
@@ -16,8 +11,31 @@ const statusColors = {
 };
 
 export default function Presupuesto() {
+  const { user } = useAuth();
+  const [budgets, setBudgets] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [dateFilter, setDateFilter] = useState('');
+
+  useEffect(() => {
+    loadBudgets();
+  }, []);
+
+  const loadBudgets = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('budgets')
+        .select('*, clients(name), vehicles(brand, model)')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (!error) setBudgets(data || []);
+    } catch (error) {
+      console.error('Error loading budgets:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -55,38 +73,47 @@ export default function Presupuesto() {
           </div>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="table-header">
-                <th className="text-left px-4 py-3 rounded-l-lg">Estado</th>
-                <th className="text-left px-4 py-3">Vehículo</th>
-                <th className="text-left px-4 py-3">Cliente</th>
-                <th className="text-left px-4 py-3">Presupuesto</th>
-                <th className="text-left px-4 py-3">Fecha</th>
-                <th className="text-left px-4 py-3">Ítems</th>
-                <th className="text-right px-4 py-3 rounded-r-lg">Total</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {budgets.map(b => (
-                <tr key={b.id} className="hover:bg-gray-50 transition-colors">
-                  <td className="px-4 py-3.5">
-                    <span className={`inline-flex px-2.5 py-1 rounded-full text-xs font-semibold ${statusColors[b.status]}`}>
-                      {b.status.charAt(0).toUpperCase() + b.status.slice(1)}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3.5 text-sm font-medium text-gray-800">{b.vehicle}</td>
-                  <td className="px-4 py-3.5 text-sm text-gray-700">{b.client}</td>
-                  <td className="px-4 py-3.5 text-sm font-semibold text-primary-600">{b.id}</td>
-                  <td className="px-4 py-3.5 text-sm text-gray-500">{b.date}</td>
-                  <td className="px-4 py-3.5 text-sm text-gray-500">{b.items} ítems</td>
-                  <td className="px-4 py-3.5 text-sm font-bold text-gray-800 text-right">${b.total.toLocaleString()}</td>
+        {loading ? (
+          <div className="text-center py-12">
+            <div className="w-8 h-8 border-4 border-primary-200 border-t-primary-600 rounded-full animate-spin mx-auto"></div>
+          </div>
+        ) : budgets.length === 0 ? (
+          <div className="text-center py-12 text-gray-400">
+            <Filter className="w-12 h-12 mx-auto mb-3 opacity-40" />
+            <p>No hay presupuestos ainda</p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="table-header">
+                  <th className="text-left px-4 py-3 rounded-l-lg">Estado</th>
+                  <th className="text-left px-4 py-3">Vehículo</th>
+                  <th className="text-left px-4 py-3">Cliente</th>
+                  <th className="text-left px-4 py-3">Presupuesto</th>
+                  <th className="text-right px-4 py-3 rounded-r-lg">Total</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {budgets.map(b => (
+                  <tr key={b.id} className="hover:bg-gray-50 transition-colors">
+                    <td className="px-4 py-3.5">
+                      <span className={`inline-flex px-2.5 py-1 rounded-full text-xs font-semibold ${statusColors[b.status]}`}>
+                        {b.status.charAt(0).toUpperCase() + b.status.slice(1)}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3.5 text-sm font-medium text-gray-800">
+                      {b.vehicles ? `${b.vehicles.brand} ${b.vehicles.model}` : '-'}
+                    </td>
+                    <td className="px-4 py-3.5 text-sm text-gray-700">{b.clients?.name || '-'}</td>
+                    <td className="px-4 py-3.5 text-sm font-semibold text-primary-600">#{b.budget_number}</td>
+                    <td className="px-4 py-3.5 text-sm font-bold text-gray-800 text-right">${Number(b.total).toLocaleString()}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
     </div>
   );

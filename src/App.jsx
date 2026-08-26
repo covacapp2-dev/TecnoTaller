@@ -21,6 +21,7 @@ import Informes from './pages/Informes';
 import Herramientas from './pages/Herramientas';
 import Configuracion from './pages/Configuracion';
 import MiCuenta from './pages/MiCuenta';
+import AdminPanel from './pages/AdminPanel';
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth();
@@ -69,6 +70,7 @@ function AppRoutes() {
         <Route path="herramientas" element={<Herramientas />} />
         <Route path="configuracion" element={<Configuracion />} />
         <Route path="mi-cuenta" element={<MiCuenta />} />
+        <Route path="admin" element={<AdminPanel />} />
       </Route>
 
       <Route path="*" element={<Navigate to="/inicio" replace />} />

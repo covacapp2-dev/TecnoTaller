@@ -5,7 +5,7 @@ import {
   Home, Wrench, Calendar, Bell, Car, History, ShoppingBag, DollarSign,
   Users, Package, UserCheck, Phone, BarChart3, FileText, Settings,
   LogOut, Menu, X, ChevronDown, ChevronRight, CreditCard, ClipboardList,
-  BookOpen, TrendingUp, AlertCircle, Hammer, Sliders
+  BookOpen, TrendingUp, AlertCircle, Hammer, Sliders, Shield
 } from 'lucide-react';
 
 const menuItems = [
@@ -36,7 +36,7 @@ const menuItems = [
 export default function Sidebar({ collapsed, onToggle }) {
   const location = useLocation();
   const [expandedMenu, setExpandedMenu] = useState('Taller');
-  const { logout } = useAuth();
+  const { logout, user } = useAuth();
   const navigate = useNavigate();
 
   const toggleSubmenu = (label) => {
@@ -129,6 +129,15 @@ export default function Sidebar({ collapsed, onToggle }) {
               )}
             </div>
           ))}
+          {user?.role === 'admin' && (
+            <Link
+              to="/admin"
+              className={`sidebar-link ${isActive('/admin') ? 'bg-purple-600 text-white shadow-md' : 'text-purple-300 hover:bg-purple-600/30 hover:text-white'}`}
+            >
+              <Shield className="w-5 h-5 flex-shrink-0" />
+              {collapsed && <span>Admin</span>}
+            </Link>
+          )}
         </nav>
 
         <div className="p-3 border-t border-primary-700/50">

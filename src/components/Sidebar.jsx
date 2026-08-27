@@ -39,6 +39,8 @@ export default function Sidebar({ collapsed, onToggle }) {
   const { logout, user } = useAuth();
   const navigate = useNavigate();
 
+  console.log('USER ROLE:', user?.role, user);
+
   const toggleSubmenu = (label) => {
     setExpandedMenu(expandedMenu === label ? null : label);
   };

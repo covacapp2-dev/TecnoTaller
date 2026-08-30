@@ -19,13 +19,11 @@ export const AuthService = {
         return { success: false, error: error.message === 'Invalid login credentials' ? 'Email o contraseña incorrectos' : error.message }
       }
 
-      const { data: profile, error: profileError } = await supabase
+      const { data: profile } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', data.user.id)
         .single()
-
-      console.log('PROFILE QUERY:', profile, profileError)
 
       const user = {
         id: data.user.id,

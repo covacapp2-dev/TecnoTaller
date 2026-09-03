@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { ChevronLeft, ChevronRight, Plus, X, Link2, Clock, User, Copy, Check } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Plus, X, Link2, Clock, User, Copy, Check, MessageCircle } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
 
@@ -111,6 +111,29 @@ export default function Calendario() {
     navigator.clipboard.writeText(getShareLink());
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const sendWhatsApp = (evt) => {
+    const phone = evt.client_phone?.replace(/\D/g, '') || '';
+    const dateStr = evt.event_date;
+    const timeStr = evt.event_time?.substring(0, 5) || '';
+    const notes = evt.notes || '';
+    
+    let message = `Hola ${evt.client_name || 'Cliente'}, te confirmamos tu turno en TecnoTaller.\n\n`;
+    message += `📅 Fecha: ${dateStr}\n`;
+    message += `⏰ Horario: ${timeStr}\n`;
+    
+    if (notes) {
+      const patenteMatch = notes.match(/Patente: ([^|]+)/);
+      const modeloMatch = notes.match(/Modelo: ([^|]+)/);
+      if (patenteMatch) message += `🚗 Patente: ${patenteMatch[1].trim()}\n`;
+      if (modeloMatch) message += `🚙 Modelo: ${modeloMatch[1].trim()}\n`;
+    }
+    
+    message += `\n¡Te esperamos! 📋🔧`;
+    
+    const url = phone ? `https://wa.me/${phone}?text=${encodeURIComponent(message)}` : `https://wa.me/?text=${encodeURIComponent(message)}`;
+    window.open(url, '_blank');
   };
 
   const today = new Date();
@@ -249,9 +272,17 @@ export default function Calendario() {
             <div className="p-4 space-y-3 max-h-96 overflow-y-auto">
               {selectedDayEvents.map(evt => (
                 <div key={evt.id} className="bg-[#0f1219] border border-gray-700 rounded-lg p-3">
-                  <div className="flex items-center gap-2 mb-1">
-                    <Clock className="w-4 h-4 text-primary-400" />
-                    <span className="text-sm font-bold text-white">{evt.event_time}</span>
+                  <div className="flex items-center justify-between mb-1">
+                    <div className="flex items-center gap-2">
+                      <Clock className="w-4 h-4 text-primary-400" />
+                      <span className="text-sm font-bold text-white">{evt.event_time?.substring(0, 5)}</span>
+                    </div>
+                    {evt.client_phone && (
+                      <button onClick={() => sendWhatsApp(evt)} className="flex items-center gap-1 bg-green-600 hover:bg-green-700 text-white px-2 py-1 rounded-lg text-xs transition-colors">
+                        <MessageCircle className="w-3 h-3" />
+                        WhatsApp
+                      </button>
+                    )}
                   </div>
                   <div className="flex items-center gap-2">
                     <User className="w-4 h-4 text-gray-400" />

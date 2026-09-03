@@ -1,7 +1,7 @@
 import { supabase } from '../lib/supabase'
 
 const DEFAULT_ADMIN = {
-  email: 'grafica.covac@hotmail.com',
+  email: 'covacapp2@gmail.com',
   password: 'a4618765',
   name: 'Administrador',
   role: 'admin',
@@ -29,7 +29,7 @@ export const AuthService = {
         id: data.user.id,
         email: data.user.email,
         name: profile?.name || data.user.email.split('@')[0],
-        role: profile?.role || 'user',
+        role: profile?.role || data.user.user_metadata?.role || 'user',
       }
 
       return { success: true, user }
@@ -88,7 +88,7 @@ export const AuthService = {
 
       if (!session) return null
 
-      const { data: profile } = await supabase
+      const { data: profile, error } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', session.user.id)
@@ -98,7 +98,7 @@ export const AuthService = {
         id: session.user.id,
         email: session.user.email,
         name: profile?.name || session.user.email.split('@')[0],
-        role: profile?.role || 'user',
+        role: profile?.role || session.user.user_metadata?.role || 'user',
       }
     } catch {
       return null

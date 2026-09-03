@@ -3,7 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import {
   Home, ClipboardList, BookOpen, Calendar, Bell, Car, History,
   ShoppingBag, DollarSign, CreditCard, Package, UserCheck, Phone,
-  BarChart3, FileText, Hammer, Settings, Users, Shield
+  BarChart3, FileText, Settings, Users, Shield
 } from 'lucide-react';
 
 const menuCards = [
@@ -19,8 +19,8 @@ const menuCards = [
   { label: 'Inventario', path: '/inventario', icon: Package, emoji: '📦' },
   { label: 'Trabajadores', path: '/trabajadores', icon: UserCheck, emoji: '👷' },
   { label: 'Contactos', path: '/contactos', icon: Phone, emoji: '📞' },
-  { label: 'Informes', path: '/informes', icon: FileText, emoji: '📝' },
-  { label: 'Herramientas', path: '/herramientas', icon: Hammer, emoji: '🛠️' },
+  { label: 'Reportes', path: '/reportes/historial-caja', icon: BarChart3, emoji: '📊' },
+  { label: 'Informes', path: '/informes/historico-cliente', icon: FileText, emoji: '📝' },
   { label: 'Configuración', path: '/configuracion', icon: Settings, emoji: '⚙️' },
   { label: 'Mi Cuenta', path: '/mi-cuenta', icon: Users, emoji: '👤' },
 ];

@@ -3,9 +3,9 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import {
   Home, Wrench, Calendar, Bell, Car, History, ShoppingBag, DollarSign,
-  Users, Package, UserCheck, Phone, BarChart3, FileText, Settings,
-  LogOut, Menu, X, ChevronDown, ChevronRight, CreditCard, ClipboardList,
-  BookOpen, TrendingUp, AlertCircle, Hammer, Sliders, Shield
+  CreditCard, Package, UserCheck, Phone, BarChart3, FileText, Hammer,
+  Sliders, BookOpen, Users, LogOut, Menu, X, ChevronDown, ChevronRight,
+  Shield, Play, ClipboardList
 } from 'lucide-react';
 
 const menuItems = [
@@ -22,20 +22,24 @@ const menuItems = [
   },
   { path: '/tienda', label: 'Tienda', icon: ShoppingBag },
   { path: '/caja', label: 'Caja', icon: DollarSign },
-  { path: '/cuenta-corrientes', label: 'Cuenta Corrientes', icon: CreditCard },
+  { path: '/cuenta-corrientes', label: 'Cuentas corrientes', icon: CreditCard },
   { path: '/inventario', label: 'Inventario', icon: Package },
   { path: '/trabajadores', label: 'Trabajadores', icon: UserCheck },
   { path: '/contactos', label: 'Contactos', icon: Phone },
-  { path: '/grafica', label: 'Gráfica', icon: BarChart3 },
+  { path: '/grafica', label: 'Gráficas', icon: BarChart3 },
   { path: '/informes', label: 'Informes', icon: FileText },
   { path: '/herramientas', label: 'Herramientas', icon: Hammer },
-  { path: '/configuracion', label: 'Configuración', icon: Sliders },
-  { path: '/mi-cuenta', label: 'Mi Cuenta', icon: Users },
+  { path: '/configuracion', label: 'Configuraciones', icon: Sliders },
+  { path: '/tutoriales', label: 'Tutoriales', icon: Play },
+];
+
+const bottomItems = [
+  { path: '/mi-cuenta', label: 'Mi cuenta', icon: Users },
 ];
 
 export default function Sidebar({ collapsed, onToggle }) {
   const location = useLocation();
-  const [expandedMenu, setExpandedMenu] = useState('Taller');
+  const [expandedMenu, setExpandedMenu] = useState(null);
   const { logout, user } = useAuth();
   const navigate = useNavigate();
 
@@ -67,7 +71,7 @@ export default function Sidebar({ collapsed, onToggle }) {
       >
         <div className="flex items-center justify-between p-4 border-b border-primary-700/50">
           <div className="flex items-center gap-3">
-            <img src="/logo.svg" alt="TecnoTaller" className="w-10 h-10 rounded-xl flex-shrink-0 shadow-lg object-cover" />
+            <img src="/logopwa.ico" alt="TecnoTaller" className="w-10 h-10 rounded-xl flex-shrink-0 shadow-lg object-cover" />
             {collapsed && (
               <div className="animate-fade-in">
                 <h1 className="text-lg font-bold leading-tight">
@@ -140,7 +144,17 @@ export default function Sidebar({ collapsed, onToggle }) {
           )}
         </nav>
 
-        <div className="p-3 border-t border-primary-700/50">
+        <div className="p-3 border-t border-primary-700/50 space-y-0.5">
+          {bottomItems.map((item) => (
+            <Link
+              key={item.path}
+              to={item.path}
+              className={`sidebar-link ${isActive(item.path) ? 'bg-primary-500 text-white shadow-md' : 'text-primary-200 hover:bg-primary-700/30 hover:text-white'}`}
+            >
+              <item.icon className="w-5 h-5 flex-shrink-0" />
+              {collapsed && <span>{item.label}</span>}
+            </Link>
+          ))}
           <button
             onClick={handleLogout}
             className="sidebar-link w-full text-red-300 hover:bg-red-500/20 hover:text-red-200"

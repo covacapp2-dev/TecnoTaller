@@ -41,7 +41,6 @@ const menuItems = [
       { path: '/informes/historico-detallado-vehiculo', label: 'Histórico Detallado por Vehículo', icon: History },
     ]
   },
-  { path: '/informes', label: 'Informes', icon: FileText },
   { path: '/herramientas', label: 'Herramientas', icon: Hammer },
   { path: '/configuracion', label: 'Configuraciones', icon: Sliders },
 ];

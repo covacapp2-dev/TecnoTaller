@@ -199,7 +199,7 @@ export default function Presupuesto() {
                   <div className="flex items-center gap-2">
                     <label className="text-xs text-gray-400 w-24">Buscar cliente</label>
                     <div className="flex-1 relative">
-                      <input type="text" placeholder="Nombre del cliente..." className={inputClass} value={searchClient} onChange={e => { setSearchClient(e.target.value); if (e.target.value) setShowClientPicker(true); }} onFocus={() => setShowClientPicker(true)} />
+                      <input type="text" placeholder="Nombre del cliente..." className={inputClass} value={searchClient} onChange={e => { setSearchClient(e.target.value); if (e.target.value) setShowClientPicker(true); }} onFocus={() => setShowClientPicker(true)} onBlur={() => setTimeout(() => setShowClientPicker(false), 200)} />
                       {showClientPicker && (
                         <div className="absolute top-full left-0 right-0 mt-1 bg-[#0f1219] border border-gray-600 rounded-lg shadow-xl z-50 max-h-40 overflow-y-auto">
                           {clients.filter(c => c.name.toLowerCase().includes(searchClient.toLowerCase())).map(c => (
@@ -225,7 +225,7 @@ export default function Presupuesto() {
                   <div className="flex items-center gap-2">
                     <label className="text-xs text-gray-400 w-24">Buscar vehículo</label>
                     <div className="flex-1 relative">
-                      <input type="text" placeholder="Vehículo..." className={inputClass} value={searchVehicle} onChange={e => { setSearchVehicle(e.target.value); if (e.target.value) setShowVehiclePicker(true); }} onFocus={() => { if (selectedClient) setShowVehiclePicker(true); }} disabled={!selectedClient} />
+                      <input type="text" placeholder="Vehículo..." className={inputClass} value={searchVehicle} onChange={e => { setSearchVehicle(e.target.value); if (e.target.value) setShowVehiclePicker(true); }} onFocus={() => { if (selectedClient) setShowVehiclePicker(true); }} onBlur={() => setTimeout(() => setShowVehiclePicker(false), 200)} disabled={!selectedClient} />
                       {showVehiclePicker && (
                         <div className="absolute top-full left-0 right-0 mt-1 bg-[#0f1219] border border-gray-600 rounded-lg shadow-xl z-50 max-h-40 overflow-y-auto">
                           {vehicles.filter(v => `${v.brand} ${v.model} ${v.patente}`.toLowerCase().includes(searchVehicle.toLowerCase())).map(v => (

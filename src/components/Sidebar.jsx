@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import {
   Home, Wrench, Calendar, Bell, Car, History, ShoppingBag, DollarSign,
-  CreditCard, Package, UserCheck, Phone, BarChart3, FileText, Hammer,
+  CreditCard, Package, UserCheck, Phone, BarChart3, FileText,
   Sliders, BookOpen, Users, LogOut, Menu, X, ChevronDown, ChevronRight,
   Shield, ClipboardList, TrendingUp, PieChart, Activity
 } from 'lucide-react';
@@ -41,7 +41,6 @@ const menuItems = [
       { path: '/informes/historico-detallado-vehiculo', label: 'Histórico Detallado por Vehículo', icon: History },
     ]
   },
-  { path: '/herramientas', label: 'Herramientas', icon: Hammer },
   { path: '/configuracion', label: 'Configuraciones', icon: Sliders },
 ];
 

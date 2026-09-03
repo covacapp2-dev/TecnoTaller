@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Search, Plus, ChevronDown, ChevronUp } from 'lucide-react';
+import { Search, Plus, ChevronDown, ChevronUp, X } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
 
@@ -28,6 +28,18 @@ const statusLabels = {
   cancelado: 'Cancelado',
 };
 
+const emptyForm = {
+  client_id: '',
+  vehicle_id: '',
+  description: '',
+  diagnosis: '',
+  status: 'pendiente',
+  pay_status: 'pendiente',
+  total: 0,
+  paid_amount: 0,
+  scheduled_date: '',
+};
+
 export default function Ordenes() {
   const { user } = useAuth();
   const [orders, setOrders] = useState([]);
@@ -39,10 +51,24 @@ export default function Ordenes() {
   const [dateTo, setDateTo] = useState('');
   const [sortField, setSortField] = useState('created_at');
   const [sortDir, setSortDir] = useState('desc');
+  const [showModal, setShowModal] = useState(false);
+  const [form, setForm] = useState(emptyForm);
+  const [clients, setClients] = useState([]);
+  const [vehicles, setVehicles] = useState([]);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     loadOrders();
   }, []);
+
+  useEffect(() => {
+    if (showModal) loadClients();
+  }, [showModal]);
+
+  useEffect(() => {
+    if (form.client_id) loadVehicles(form.client_id);
+    else setVehicles([]);
+  }, [form.client_id]);
 
   const loadOrders = async () => {
     try {
@@ -57,6 +83,39 @@ export default function Ordenes() {
       console.error('Error loading orders:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadClients = async () => {
+    const { data } = await supabase.from('clients').select('id, name').eq('user_id', user.id).order('name');
+    setClients(data || []);
+  };
+
+  const loadVehicles = async (clientId) => {
+    const { data } = await supabase.from('vehicles').select('id, brand, model, patente').eq('client_id', clientId).order('brand');
+    setVehicles(data || []);
+  };
+
+  const handleCreate = async (e) => {
+    e.preventDefault();
+    setSaving(true);
+    const { error } = await supabase.from('work_orders').insert({
+      user_id: user.id,
+      client_id: form.client_id || null,
+      vehicle_id: form.vehicle_id || null,
+      description: form.description,
+      diagnosis: form.diagnosis,
+      status: form.status,
+      pay_status: form.pay_status,
+      total: Number(form.total) || 0,
+      paid_amount: Number(form.paid_amount) || 0,
+      scheduled_date: form.scheduled_date || null,
+    });
+    setSaving(false);
+    if (!error) {
+      setShowModal(false);
+      setForm(emptyForm);
+      loadOrders();
     }
   };
 
@@ -91,6 +150,8 @@ export default function Ordenes() {
       setSortDir('desc');
     }
   };
+
+  const inputClass = "w-full bg-[#0f1219] border border-gray-600 rounded-lg px-3 py-2 text-sm text-gray-300 placeholder-gray-500 focus:outline-none focus:border-primary-500";
 
   return (
     <div className="h-full bg-[#0f1219] p-4 space-y-4">
@@ -135,7 +196,10 @@ export default function Ordenes() {
             onChange={e => setDateTo(e.target.value)}
             className="bg-[#1a1f2e] border border-gray-600 rounded-lg px-3 py-2 text-sm text-gray-300 focus:outline-none focus:border-primary-500 w-36"
           />
-          <button className="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-1.5 transition-colors">
+          <button
+            onClick={() => setShowModal(true)}
+            className="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-1.5 transition-colors"
+          >
             <Plus className="w-4 h-4" />
             Nuevo
           </button>
@@ -233,6 +297,151 @@ export default function Ordenes() {
               })}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {showModal && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-[100] p-4" onClick={() => setShowModal(false)}>
+          <div className="bg-[#1a1f2e] border border-gray-700 rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-2xl" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between p-5 border-b border-gray-700">
+              <h2 className="text-lg font-bold text-white">Nueva Orden de Trabajo</h2>
+              <button onClick={() => setShowModal(false)} className="text-gray-400 hover:text-white p-1">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <form onSubmit={handleCreate} className="p-5 space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs text-gray-400 mb-1.5">Cliente</label>
+                  <select
+                    value={form.client_id}
+                    onChange={e => setForm({ ...form, client_id: e.target.value, vehicle_id: '' })}
+                    className={inputClass}
+                  >
+                    <option value="">Sin cliente</option>
+                    {clients.map(c => (
+                      <option key={c.id} value={c.id}>{c.name}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs text-gray-400 mb-1.5">Vehículo</label>
+                  <select
+                    value={form.vehicle_id}
+                    onChange={e => setForm({ ...form, vehicle_id: e.target.value })}
+                    className={inputClass}
+                    disabled={!form.client_id}
+                  >
+                    <option value="">Sin vehículo</option>
+                    {vehicles.map(v => (
+                      <option key={v.id} value={v.id}>{v.brand} {v.model} ({v.patente})</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs text-gray-400 mb-1.5">Descripción</label>
+                <textarea
+                  value={form.description}
+                  onChange={e => setForm({ ...form, description: e.target.value })}
+                  placeholder="Descripción del trabajo..."
+                  rows={2}
+                  className={inputClass + " resize-none"}
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs text-gray-400 mb-1.5">Diagnóstico</label>
+                <textarea
+                  value={form.diagnosis}
+                  onChange={e => setForm({ ...form, diagnosis: e.target.value })}
+                  placeholder="Diagnóstico del vehículo..."
+                  rows={2}
+                  className={inputClass + " resize-none"}
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs text-gray-400 mb-1.5">Estado</label>
+                  <select
+                    value={form.status}
+                    onChange={e => setForm({ ...form, status: e.target.value })}
+                    className={inputClass}
+                  >
+                    <option value="pendiente">Pendiente</option>
+                    <option value="con_turno">Con Turno</option>
+                    <option value="en_progreso">En Progreso</option>
+                    <option value="entregado">Entregado</option>
+                    <option value="cancelado">Cancelado</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs text-gray-400 mb-1.5">Estado de Pago</label>
+                  <select
+                    value={form.pay_status}
+                    onChange={e => setForm({ ...form, pay_status: e.target.value })}
+                    className={inputClass}
+                  >
+                    <option value="pendiente">Pendiente</option>
+                    <option value="pagado">Pagado</option>
+                    <option value="parcial">Parcial</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs text-gray-400 mb-1.5">Total</label>
+                  <input
+                    type="number"
+                    value={form.total}
+                    onChange={e => setForm({ ...form, total: e.target.value })}
+                    placeholder="0"
+                    className={inputClass}
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs text-gray-400 mb-1.5">Monto Pagado</label>
+                  <input
+                    type="number"
+                    value={form.paid_amount}
+                    onChange={e => setForm({ ...form, paid_amount: e.target.value })}
+                    placeholder="0"
+                    className={inputClass}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs text-gray-400 mb-1.5">Fecha Programada</label>
+                <input
+                  type="date"
+                  value={form.scheduled_date}
+                  onChange={e => setForm({ ...form, scheduled_date: e.target.value })}
+                  className={inputClass}
+                />
+              </div>
+
+              <div className="flex gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowModal(false)}
+                  className="flex-1 bg-gray-700 hover:bg-gray-600 text-gray-300 py-2.5 rounded-lg text-sm font-medium transition-colors"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  disabled={saving}
+                  className="flex-1 bg-primary-600 hover:bg-primary-700 text-white py-2.5 rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
+                >
+                  {saving ? 'Creando...' : 'Crear Orden'}
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       )}
     </div>

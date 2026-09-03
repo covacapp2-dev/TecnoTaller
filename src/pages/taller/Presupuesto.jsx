@@ -35,6 +35,8 @@ export default function Presupuesto() {
   const [newClientName, setNewClientName] = useState('');
   const [newClientPhone, setNewClientPhone] = useState('');
   const [newClientDni, setNewClientDni] = useState('');
+  const [showClientModal, setShowClientModal] = useState(false);
+  const [clientForm, setClientForm] = useState({ name: '', fantasy_name: '', dni: '', doc_type: 'DNI', tipo_responsable: 'Consumidor Final', domicilio: '', phone: '', phone_alt: '', email: '', email_alt: '', contact_person: '', notes: '' });
   const [newVehicleBrand, setNewVehicleBrand] = useState('');
   const [newVehicleModel, setNewVehicleModel] = useState('');
   const [newVehiclePatente, setNewVehiclePatente] = useState('');
@@ -66,9 +68,12 @@ export default function Presupuesto() {
   const selectVehicle = (v) => { setSelectedVehicle(v); setShowVehiclePicker(false); };
 
   const addClient = async () => {
-    if (!newClientName.trim()) return;
-    const { data } = await supabase.from('clients').insert({ user_id: user.id, name: newClientName, phone: newClientPhone, email: newClientDni }).select().single();
-    if (data) { setClients([...clients, data]); setSelectedClient(data); setShowClientPicker(false); setNewClientName(''); setNewClientPhone(''); setNewClientDni(''); }
+    if (!clientForm.name.trim()) return;
+    const { data } = await supabase.from('clients').insert({
+      user_id: user.id, name: clientForm.name, phone: clientForm.phone, email: clientForm.email, notes: clientForm.notes,
+      address: clientForm.domicilio,
+    }).select().single();
+    if (data) { setClients([...clients, data]); setSelectedClient(data); setShowClientPicker(false); setShowClientModal(false); setClientForm({ name: '', fantasy_name: '', dni: '', doc_type: 'DNI', tipo_responsable: 'Consumidor Final', domicilio: '', phone: '', phone_alt: '', email: '', email_alt: '', contact_person: '', notes: '' }); }
   };
 
   const addVehicle = async () => {
@@ -200,18 +205,13 @@ export default function Presupuesto() {
                           {clients.filter(c => c.name.toLowerCase().includes(searchClient.toLowerCase())).map(c => (
                             <button key={c.id} onClick={() => { selectClient(c); setSearchClient(c.name); }} className="w-full text-left px-3 py-2 text-sm text-gray-300 hover:bg-[#222839]">{c.name}</button>
                           ))}
-                          <div className="border-t border-gray-700 p-2">
-                            <input type="text" placeholder="Nuevo cliente..." className={inputSmall + " w-full mb-1"} value={newClientName} onChange={e => setNewClientName(e.target.value)} />
-                            <div className="flex gap-1">
-                              <input type="text" placeholder="Tel" className={inputSmall + " flex-1"} value={newClientPhone} onChange={e => setNewClientPhone(e.target.value)} />
-                              <input type="text" placeholder="DNI" className={inputSmall + " flex-1"} value={newClientDni} onChange={e => setNewClientDni(e.target.value)} />
-                              <button onClick={addClient} className="bg-primary-600 text-white px-2 rounded text-xs">+</button>
-                            </div>
-                          </div>
+                          {clients.filter(c => c.name.toLowerCase().includes(searchClient.toLowerCase())).length === 0 && (
+                            <div className="px-3 py-2 text-sm text-gray-500">Sin resultados</div>
+                          )}
                         </div>
                       )}
                     </div>
-                    <button className="bg-primary-600 hover:bg-primary-700 text-white p-1.5 rounded-lg transition-colors"><Plus className="w-4 h-4" /></button>
+                    <button onClick={() => setShowClientModal(true)} className="bg-primary-600 hover:bg-primary-700 text-white p-1.5 rounded-lg transition-colors"><Plus className="w-4 h-4" /></button>
                   </div>
                   {selectedClient && (
                     <div className="flex gap-4 ml-26 text-xs text-gray-400">
@@ -360,6 +360,90 @@ export default function Presupuesto() {
               <div className="flex gap-3 pt-2">
                 <button type="button" onClick={() => setShowForm(false)} className="flex-1 bg-gray-700 hover:bg-gray-600 text-gray-300 py-2.5 rounded-lg text-sm font-medium transition-colors">Cancelar</button>
                 <button onClick={handleSave} disabled={saving} className="flex-1 bg-primary-600 hover:bg-primary-700 text-white py-2.5 rounded-lg text-sm font-medium transition-colors disabled:opacity-50">{saving ? 'Guardando...' : 'Guardar Presupuesto'}</button>
+              </div>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
+
+      {showClientModal && createPortal(
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-[9999] p-4" onClick={() => setShowClientModal(false)}>
+          <div className="bg-[#1a1f2e] border border-gray-700 rounded-2xl w-full max-w-2xl shadow-2xl" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between p-4 border-b border-gray-700">
+              <h2 className="text-lg font-bold text-white">AGREGAR</h2>
+              <button onClick={() => setShowClientModal(false)} className="text-gray-400 hover:text-white p-1"><X className="w-5 h-5" /></button>
+            </div>
+            <div className="p-4 space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs text-gray-400 mb-1">Nombre *</label>
+                  <input type="text" className={inputClass} value={clientForm.name} onChange={e => setClientForm({ ...clientForm, name: e.target.value })} />
+                </div>
+                <div>
+                  <label className="block text-xs text-gray-400 mb-1">Nombre fantasia</label>
+                  <input type="text" className={inputClass} value={clientForm.fantasy_name} onChange={e => setClientForm({ ...clientForm, fantasy_name: e.target.value })} />
+                </div>
+              </div>
+              <div className="grid grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-xs text-gray-400 mb-1">Documento DNI</label>
+                  <input type="text" className={inputClass} value={clientForm.dni} onChange={e => setClientForm({ ...clientForm, dni: e.target.value })} />
+                </div>
+                <div>
+                  <label className="block text-xs text-gray-400 mb-1">Tipo documento</label>
+                  <select className={inputClass} value={clientForm.doc_type} onChange={e => setClientForm({ ...clientForm, doc_type: e.target.value })}>
+                    <option>DNI</option><option>CUIL</option><option>CUIT</option><option>Pasaporte</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs text-gray-400 mb-1">Tipo responsable</label>
+                  <select className={inputClass} value={clientForm.tipo_responsable} onChange={e => setClientForm({ ...clientForm, tipo_responsable: e.target.value })}>
+                    <option>Consumidor Final</option><option>Responsable Inscripto</option><option>Monotributista</option><option>Exento</option>
+                  </select>
+                </div>
+              </div>
+              <div>
+                <label className="block text-xs text-gray-400 mb-1">Domicilio fiscal</label>
+                <input type="text" className={inputClass} value={clientForm.domicilio} onChange={e => setClientForm({ ...clientForm, domicilio: e.target.value })} />
+              </div>
+
+              <div className="border-t border-gray-700 pt-4">
+                <h3 className="text-sm font-semibold text-gray-300 mb-3">Contacto</h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs text-gray-400 mb-1">Telefono</label>
+                    <input type="text" className={inputClass} value={clientForm.phone} onChange={e => setClientForm({ ...clientForm, phone: e.target.value })} />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-gray-400 mb-1">Telefono alternativo</label>
+                    <input type="text" className={inputClass} value={clientForm.phone_alt} onChange={e => setClientForm({ ...clientForm, phone_alt: e.target.value })} />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4 mt-3">
+                  <div>
+                    <label className="block text-xs text-gray-400 mb-1">Email</label>
+                    <input type="email" className={inputClass} value={clientForm.email} onChange={e => setClientForm({ ...clientForm, email: e.target.value })} />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-gray-400 mb-1">Email alternativo</label>
+                    <input type="email" className={inputClass} value={clientForm.email_alt} onChange={e => setClientForm({ ...clientForm, email_alt: e.target.value })} />
+                  </div>
+                </div>
+                <div className="mt-3">
+                  <label className="block text-xs text-gray-400 mb-1">Persona contacto</label>
+                  <input type="text" className={inputClass} value={clientForm.contact_person} onChange={e => setClientForm({ ...clientForm, contact_person: e.target.value })} />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs text-gray-400 mb-1">Comentario</label>
+                <textarea className={inputClass + " resize-none"} rows={2} value={clientForm.notes} onChange={e => setClientForm({ ...clientForm, notes: e.target.value })} />
+              </div>
+
+              <div className="flex gap-3 pt-2">
+                <button onClick={() => setShowClientModal(false)} className="flex-1 bg-gray-700 hover:bg-gray-600 text-gray-300 py-2.5 rounded-lg text-sm font-medium transition-colors">VOLVER</button>
+                <button onClick={addClient} disabled={!clientForm.name.trim()} className="flex-1 bg-primary-600 hover:bg-primary-700 text-white py-2.5 rounded-lg text-sm font-medium transition-colors disabled:opacity-50">AGREGAR</button>
               </div>
             </div>
           </div>

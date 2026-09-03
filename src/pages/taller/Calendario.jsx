@@ -90,13 +90,13 @@ export default function Calendario() {
       notes: newEvent.notes,
       client_id: selectedClient?.id || null,
       client_name: selectedClient?.name || newEvent.title,
-      client_phone: selectedClient?.phone || '',
+      client_phone: selectedClient?.phone || newEvent.client_phone || '',
     }).select().single();
 
     if (data) {
       setEvents([...events, data]);
       setShowModal(false);
-      setNewEvent({ title: '', event_date: '', event_time: '09:00', type: 'turno', notes: '' });
+      setNewEvent({ title: '', event_date: '', event_time: '09:00', type: 'turno', notes: '', client_phone: '' });
       setSelectedClient(null);
       setSearchClient('');
     }
@@ -231,8 +231,15 @@ export default function Calendario() {
 
               {!selectedClient && (
                 <div className="space-y-2">
-                  <label className="text-xs text-gray-400">Nombre del cliente</label>
+                  <label className="text-xs text-gray-400">Nombre del cliente *</label>
                   <input type="text" placeholder="Nombre..." className={inputClass} value={newEvent.title} onChange={e => setNewEvent({ ...newEvent, title: e.target.value })} />
+                </div>
+              )}
+
+              {!selectedClient && (
+                <div className="space-y-2">
+                  <label className="text-xs text-gray-400">Celular *</label>
+                  <input type="tel" placeholder="Número de celular..." className={inputClass} value={newEvent.client_phone || ''} onChange={e => setNewEvent({ ...newEvent, client_phone: e.target.value })} />
                 </div>
               )}
 
@@ -254,7 +261,7 @@ export default function Calendario() {
 
               <div className="flex gap-3 pt-2">
                 <button onClick={() => setShowModal(false)} className="flex-1 bg-gray-700 hover:bg-gray-600 text-gray-300 py-2.5 rounded-lg text-sm font-medium transition-colors">Cancelar</button>
-                <button onClick={handleAddEvent} disabled={!newEvent.event_date || !newEvent.event_time || (!selectedClient && !newEvent.title.trim())} className="flex-1 bg-primary-600 hover:bg-primary-700 text-white py-2.5 rounded-lg text-sm font-medium transition-colors disabled:opacity-50">Guardar</button>
+                <button onClick={handleAddEvent} disabled={!newEvent.event_date || !newEvent.event_time || (!selectedClient && (!newEvent.title.trim() || !newEvent.client_phone?.trim()))} className="flex-1 bg-primary-600 hover:bg-primary-700 text-white py-2.5 rounded-lg text-sm font-medium transition-colors disabled:opacity-50">Guardar</button>
               </div>
             </div>
           </div>

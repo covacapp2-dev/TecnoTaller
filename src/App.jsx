@@ -16,7 +16,10 @@ import CuentaCorrientes from './pages/CuentaCorrientes';
 import Inventario from './pages/Inventario';
 import Trabajadores from './pages/Trabajadores';
 import Contactos from './pages/Contactos';
-import Grafica from './pages/Grafica';
+import HistorialCaja from './pages/reportes/HistorialCaja';
+import VentaMensual from './pages/reportes/VentaMensual';
+import VentaAnual from './pages/reportes/VentaAnual';
+import VentaDividida from './pages/reportes/VentaDividida';
 import Informes from './pages/Informes';
 import Herramientas from './pages/Herramientas';
 import Configuracion from './pages/Configuracion';
@@ -65,7 +68,10 @@ function AppRoutes() {
         <Route path="inventario" element={<Inventario />} />
         <Route path="trabajadores" element={<Trabajadores />} />
         <Route path="contactos" element={<Contactos />} />
-        <Route path="grafica" element={<Grafica />} />
+        <Route path="reportes/historial-caja" element={<HistorialCaja />} />
+        <Route path="reportes/venta-mensual" element={<VentaMensual />} />
+        <Route path="reportes/venta-anual" element={<VentaAnual />} />
+        <Route path="reportes/venta-dividida" element={<VentaDividida />} />
         <Route path="informes" element={<Informes />} />
         <Route path="herramientas" element={<Herramientas />} />
         <Route path="configuracion" element={<Configuracion />} />

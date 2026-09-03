@@ -5,7 +5,7 @@ import {
   Home, Wrench, Calendar, Bell, Car, History, ShoppingBag, DollarSign,
   CreditCard, Package, UserCheck, Phone, BarChart3, FileText, Hammer,
   Sliders, BookOpen, Users, LogOut, Menu, X, ChevronDown, ChevronRight,
-  Shield, Play, ClipboardList
+  Shield, ClipboardList, TrendingUp, PieChart, Activity
 } from 'lucide-react';
 
 const menuItems = [
@@ -26,7 +26,14 @@ const menuItems = [
   { path: '/inventario', label: 'Inventario', icon: Package },
   { path: '/trabajadores', label: 'Trabajadores', icon: UserCheck },
   { path: '/contactos', label: 'Contactos', icon: Phone },
-  { path: '/grafica', label: 'Gráficas', icon: BarChart3 },
+  {
+    label: 'Reportes', icon: BarChart3, children: [
+      { path: '/reportes/historial-caja', label: 'Historial de Caja', icon: DollarSign },
+      { path: '/reportes/venta-mensual', label: 'Venta Mensual', icon: TrendingUp },
+      { path: '/reportes/venta-anual', label: 'Venta Anual', icon: Activity },
+      { path: '/reportes/venta-dividida', label: 'Venta Dividida', icon: PieChart },
+    ]
+  },
   { path: '/informes', label: 'Informes', icon: FileText },
   { path: '/herramientas', label: 'Herramientas', icon: Hammer },
   { path: '/configuracion', label: 'Configuraciones', icon: Sliders },

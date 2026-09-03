@@ -19,7 +19,6 @@ const menuCards = [
   { label: 'Inventario', path: '/inventario', icon: Package, emoji: '📦' },
   { label: 'Trabajadores', path: '/trabajadores', icon: UserCheck, emoji: '👷' },
   { label: 'Contactos', path: '/contactos', icon: Phone, emoji: '📞' },
-  { label: 'Gráfica', path: '/grafica', icon: BarChart3, emoji: '📊' },
   { label: 'Informes', path: '/informes', icon: FileText, emoji: '📝' },
   { label: 'Herramientas', path: '/herramientas', icon: Hammer, emoji: '🛠️' },
   { label: 'Configuración', path: '/configuracion', icon: Settings, emoji: '⚙️' },

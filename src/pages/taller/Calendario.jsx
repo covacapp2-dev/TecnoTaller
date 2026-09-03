@@ -20,9 +20,7 @@ export default function Calendario() {
   const [selectedClient, setSelectedClient] = useState(null);
   const [copied, setCopied] = useState(false);
   const [showWhatsappModal, setShowWhatsappModal] = useState(false);
-  const [whatsappClient, setWhatsappClient] = useState('');
-  const [whatsappPhone, setWhatsappPhone] = useState('');
-  const [whatsappMessage, setWhatsappMessage] = useState('');
+  const [whatsappTemplate, setWhatsappTemplate] = useState(() => localStorage.getItem('whatsapp_template') || '');
 
   const [newEvent, setNewEvent] = useState({
     title: '',
@@ -119,23 +117,8 @@ export default function Calendario() {
 
   const sendWhatsApp = (evt) => {
     const phone = evt.client_phone?.replace(/\D/g, '') || '';
-    const dateStr = evt.event_date;
-    const timeStr = evt.event_time?.substring(0, 5) || '';
-    const notes = evt.notes || '';
-    
-    let message = `Hola ${evt.client_name || 'Cliente'}, te confirmamos tu turno en TecnoTaller.\n\n`;
-    message += `📅 Fecha: ${dateStr}\n`;
-    message += `⏰ Horario: ${timeStr}\n`;
-    
-    if (notes) {
-      const patenteMatch = notes.match(/Patente: ([^|]+)/);
-      const modeloMatch = notes.match(/Modelo: ([^|]+)/);
-      if (patenteMatch) message += `🚗 Patente: ${patenteMatch[1].trim()}\n`;
-      if (modeloMatch) message += `🚙 Modelo: ${modeloMatch[1].trim()}\n`;
-    }
-    
-    message += `\n¡Te esperamos! 📋🔧`;
-    
+    const template = localStorage.getItem('whatsapp_template') || '';
+    const message = template || `Hola ${evt.client_name || 'Cliente'}, te confirmamos tu turno en TecnoTaller. ¡Te esperamos! 📋🔧`;
     const url = phone ? `https://wa.me/${phone}?text=${encodeURIComponent(message)}` : `https://wa.me/?text=${encodeURIComponent(message)}`;
     window.open(url, '_blank');
   };
@@ -153,7 +136,7 @@ export default function Calendario() {
             {copied ? <Check className="w-4 h-4 text-green-400" /> : <Link2 className="w-4 h-4" />}
             {copied ? 'Copiado!' : 'Link de reservas'}
           </button>
-          <button onClick={() => { setShowWhatsappModal(true); setWhatsappClient(''); setWhatsappPhone(''); setWhatsappMessage(''); }} className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded-lg text-sm font-medium transition-colors">
+          <button onClick={() => { setShowWhatsappModal(true); }} className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded-lg text-sm font-medium transition-colors">
             <MessageCircle className="w-4 h-4" />
             WhatsApp
           </button>
@@ -321,46 +304,21 @@ export default function Calendario() {
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-[9999] p-4" onClick={() => setShowWhatsappModal(false)}>
           <div className="bg-[#1a1f2e] border border-gray-700 rounded-2xl w-full max-w-md shadow-2xl" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between p-4 border-b border-gray-700">
-              <h2 className="text-lg font-bold text-white">Enviar WhatsApp</h2>
+              <h2 className="text-lg font-bold text-white">Mensaje predeterminado WhatsApp</h2>
               <button onClick={() => setShowWhatsappModal(false)} className="text-gray-400 hover:text-white p-1"><X className="w-5 h-5" /></button>
             </div>
             <div className="p-4 space-y-4">
-              <div className="space-y-2">
-                <label className="text-xs text-gray-400">Buscar cliente</label>
-                <input type="text" placeholder="Nombre del cliente..." className={inputClass} value={whatsappClient} onChange={e => { setWhatsappClient(e.target.value); if (e.target.value) setShowClientPicker(true); }} onFocus={() => setShowClientPicker(true)} onBlur={() => setTimeout(() => setShowClientPicker(false), 200)} />
-                {showClientPicker && (
-                  <div className="bg-[#0f1219] border border-gray-600 rounded-lg shadow-xl max-h-32 overflow-y-auto">
-                    {clients.filter(c => c.name.toLowerCase().includes(whatsappClient.toLowerCase())).map(c => (
-                      <button key={c.id} onClick={() => { setWhatsappClient(c.name); setWhatsappPhone(c.phone); setShowClientPicker(false); }} className="w-full text-left px-3 py-2 text-sm text-gray-300 hover:bg-[#222839]">{c.name} - {c.phone}</button>
-                    ))}
-                    {clients.filter(c => c.name.toLowerCase().includes(whatsappClient.toLowerCase())).length === 0 && (
-                      <div className="px-3 py-2 text-sm text-gray-500">Sin resultados</div>
-                    )}
-                  </div>
-                )}
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-xs text-gray-400">Celular *</label>
-                <input type="tel" placeholder="Número de celular..." className={inputClass} value={whatsappPhone} onChange={e => setWhatsappPhone(e.target.value)} />
-              </div>
-
+              <p className="text-xs text-gray-400">Este mensaje se enviará a cada cliente cuando hagas click en el botón verde de WhatsApp en cualquier turno.</p>
               <div className="space-y-2">
                 <label className="text-xs text-gray-400">Mensaje</label>
-                <textarea className={inputClass + " resize-none"} rows={4} placeholder="Escribí el mensaje..." value={whatsappMessage} onChange={e => setWhatsappMessage(e.target.value)} />
+                <textarea className={inputClass + " resize-none"} rows={6} placeholder="Escribí el mensaje que se enviará a tus clientes..." value={whatsappTemplate} onChange={e => setWhatsappTemplate(e.target.value)} />
               </div>
 
               <div className="flex gap-3 pt-2">
                 <button onClick={() => setShowWhatsappModal(false)} className="flex-1 bg-gray-700 hover:bg-gray-600 text-gray-300 py-2.5 rounded-lg text-sm font-medium transition-colors">Cancelar</button>
-                <button onClick={() => {
-                  const phone = whatsappPhone.replace(/\D/g, '');
-                  const msg = whatsappMessage || `Hola ${whatsappClient}, te confirmamos tu turno en TecnoTaller. ¡Te esperamos! 📋🔧`;
-                  const url = phone ? `https://wa.me/${phone}?text=${encodeURIComponent(msg)}` : `https://wa.me/?text=${encodeURIComponent(msg)}`;
-                  window.open(url, '_blank');
-                  setShowWhatsappModal(false);
-                }} disabled={!whatsappPhone.trim()} className="flex-1 bg-green-600 hover:bg-green-700 text-white py-2.5 rounded-lg text-sm font-medium transition-colors disabled:opacity-50 flex items-center justify-center gap-2">
-                  <MessageCircle className="w-4 h-4" />
-                  Enviar
+                <button onClick={() => { localStorage.setItem('whatsapp_template', whatsappTemplate); setShowWhatsappModal(false); }} className="flex-1 bg-green-600 hover:bg-green-700 text-white py-2.5 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2">
+                  <Check className="w-4 h-4" />
+                  Guardar
                 </button>
               </div>
             </div>

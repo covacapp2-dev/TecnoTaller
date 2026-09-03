@@ -35,26 +35,26 @@ export default function Dashboard() {
   const allCards = user?.role === 'admin' ? [...menuCards, adminCard] : menuCards;
 
   return (
-    <div className="min-h-full bg-[#0f1219] -m-4">
-      <div className="flex flex-col items-center mb-4 pt-2">
-        <img src="/logo.svg" alt="TecnoTaller" className="w-14 h-14 mb-2 drop-shadow-lg" />
-        <h1 className="text-xl font-bold">
+    <div className="h-full bg-[#0f1219] p-4 flex flex-col">
+      <div className="flex flex-col items-center mb-3 pt-1 flex-shrink-0">
+        <img src="/logo.svg" alt="TecnoTaller" className="w-12 h-12 mb-1 drop-shadow-lg" />
+        <h1 className="text-lg font-bold">
           <span className="text-blue-400">Tecno</span><span className="text-white">Taller</span>
         </h1>
-        <p className="text-gray-400 text-[10px] uppercase tracking-widest mt-0.5">Soluciones Automotrices</p>
+        <p className="text-gray-400 text-[9px] uppercase tracking-widest">Soluciones Automotrices</p>
       </div>
 
-      <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-2.5">
+      <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-2 flex-1 auto-rows-fr content-start">
         {allCards.map((card) => (
           <button
             key={card.path}
             onClick={() => navigate(card.path)}
-            className="group relative bg-[#1a1f2e] hover:bg-[#222839] border border-gray-700/50 hover:border-primary-500/50 rounded-xl p-3 flex flex-col items-center justify-center gap-1.5 transition-all duration-200 hover:scale-[1.02] hover:shadow-lg hover:shadow-primary-500/10 cursor-pointer"
+            className="group relative bg-[#1a1f2e] hover:bg-[#222839] border border-gray-700/50 hover:border-primary-500/50 rounded-xl p-2 flex flex-col items-center justify-center gap-1 transition-all duration-200 hover:scale-[1.02] hover:shadow-lg hover:shadow-primary-500/10 cursor-pointer"
           >
-            <span className="text-2xl group-hover:scale-110 transition-transform duration-200">
+            <span className="text-xl group-hover:scale-110 transition-transform duration-200">
               {card.emoji}
             </span>
-            <span className="text-gray-300 group-hover:text-white text-[11px] font-medium text-center leading-tight">
+            <span className="text-gray-300 group-hover:text-white text-[10px] font-medium text-center leading-tight">
               {card.label}
             </span>
           </button>

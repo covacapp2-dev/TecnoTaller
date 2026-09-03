@@ -16,8 +16,10 @@ export default function Layout() {
       <div className={`flex-1 flex flex-col transition-all duration-300 ${sidebarOpen ? 'lg:ml-64' : 'lg:ml-[72px]'}`}>
         <Header onMenuToggle={toggleSidebar} />
 
-        <main className="flex-1 overflow-y-auto p-4">
-          <Outlet />
+        <main className="flex-1 overflow-y-auto">
+          <div className="h-full">
+            <Outlet />
+          </div>
         </main>
       </div>
     </div>

@@ -20,9 +20,9 @@ import HistorialCaja from './pages/reportes/HistorialCaja';
 import VentaMensual from './pages/reportes/VentaMensual';
 import VentaAnual from './pages/reportes/VentaAnual';
 import VentaDividida from './pages/reportes/VentaDividida';
-import HistoricoCliente from './pages/reportes/HistoricoCliente';
-import HistoricoVehiculo from './pages/reportes/HistoricoVehiculo';
-import HistoricoDetalladoVehiculo from './pages/reportes/HistoricoDetalladoVehiculo';
+import HistoricoCliente from './pages/informes/HistoricoCliente';
+import HistoricoVehiculo from './pages/informes/HistoricoVehiculo';
+import HistoricoDetalladoVehiculo from './pages/informes/HistoricoDetalladoVehiculo';
 import Informes from './pages/Informes';
 import Herramientas from './pages/Herramientas';
 import Configuracion from './pages/Configuracion';
@@ -75,10 +75,10 @@ function AppRoutes() {
         <Route path="reportes/venta-mensual" element={<VentaMensual />} />
         <Route path="reportes/venta-anual" element={<VentaAnual />} />
         <Route path="reportes/venta-dividida" element={<VentaDividida />} />
-        <Route path="reportes/historico-cliente" element={<HistoricoCliente />} />
-        <Route path="reportes/historico-vehiculo" element={<HistoricoVehiculo />} />
-        <Route path="reportes/historico-detallado-vehiculo" element={<HistoricoDetalladoVehiculo />} />
         <Route path="informes" element={<Informes />} />
+        <Route path="informes/historico-cliente" element={<HistoricoCliente />} />
+        <Route path="informes/historico-vehiculo" element={<HistoricoVehiculo />} />
+        <Route path="informes/historico-detallado-vehiculo" element={<HistoricoDetalladoVehiculo />} />
         <Route path="herramientas" element={<Herramientas />} />
         <Route path="configuracion" element={<Configuracion />} />
         <Route path="mi-cuenta" element={<MiCuenta />} />

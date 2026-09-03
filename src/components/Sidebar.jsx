@@ -32,9 +32,13 @@ const menuItems = [
       { path: '/reportes/venta-mensual', label: 'Venta Mensual', icon: TrendingUp },
       { path: '/reportes/venta-anual', label: 'Venta Anual', icon: Activity },
       { path: '/reportes/venta-dividida', label: 'Venta Dividida', icon: PieChart },
-      { path: '/reportes/historico-cliente', label: 'Histórico por Cliente', icon: Users },
-      { path: '/reportes/historico-vehiculo', label: 'Histórico por Vehículo', icon: Car },
-      { path: '/reportes/historico-detallado-vehiculo', label: 'Histórico Detallado por Vehículo', icon: History },
+    ]
+  },
+  {
+    label: 'Informes', icon: FileText, children: [
+      { path: '/informes/historico-cliente', label: 'Histórico por Cliente', icon: Users },
+      { path: '/informes/historico-vehiculo', label: 'Histórico por Vehículo', icon: Car },
+      { path: '/informes/historico-detallado-vehiculo', label: 'Histórico Detallado por Vehículo', icon: History },
     ]
   },
   { path: '/informes', label: 'Informes', icon: FileText },

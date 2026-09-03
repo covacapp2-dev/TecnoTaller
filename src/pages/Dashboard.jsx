@@ -35,7 +35,7 @@ export default function Dashboard() {
   const allCards = user?.role === 'admin' ? [...menuCards, adminCard] : menuCards;
 
   return (
-    <div className="min-h-full -m-6 p-4 bg-[#0f1219]">
+    <div className="min-h-full bg-[#0f1219] -m-4">
       <div className="flex flex-col items-center mb-4 pt-2">
         <img src="/logo.svg" alt="TecnoTaller" className="w-14 h-14 mb-2 drop-shadow-lg" />
         <h1 className="text-xl font-bold">

@@ -93,7 +93,7 @@ export default function Ordenes() {
   };
 
   return (
-    <div className="min-h-full -m-6 p-4 bg-[#0f1219] space-y-4">
+    <div className="min-h-full bg-[#0f1219] -m-4 p-4 space-y-4">
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-bold text-white">Órdenes</h1>
         <div className="flex items-center gap-2">

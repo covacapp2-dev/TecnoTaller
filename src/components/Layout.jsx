@@ -10,17 +10,15 @@ export default function Layout() {
   const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="h-screen overflow-hidden bg-gray-50 flex">
       <Sidebar collapsed={sidebarOpen} onToggle={toggleSidebar} />
 
-      <div className={`transition-all duration-300 ${sidebarOpen ? 'lg:ml-64' : 'lg:ml-[72px]'}`}>
+      <div className={`flex-1 flex flex-col transition-all duration-300 ${sidebarOpen ? 'lg:ml-64' : 'lg:ml-[72px]'}`}>
         <Header onMenuToggle={toggleSidebar} />
 
-        <main className="p-6 min-h-[calc(100vh-64px)]">
+        <main className="flex-1 overflow-y-auto p-4">
           <Outlet />
         </main>
-
-        <Footer />
       </div>
     </div>
   );

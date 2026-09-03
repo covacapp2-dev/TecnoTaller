@@ -10,7 +10,6 @@ const menuCards = [
   { label: 'Órdenes', path: '/taller/ordenes', icon: ClipboardList, emoji: '🔧' },
   { label: 'Presupuesto', path: '/taller/presupuesto', icon: BookOpen, emoji: '📋' },
   { label: 'Calendario', path: '/taller/calendario', icon: Calendar, emoji: '📅' },
-  { label: 'Recordatorios', path: '/taller/recordatorios', icon: Bell, emoji: '🔔' },
   { label: 'Vehículos', path: '/taller/vehiculos', icon: Car, emoji: '🚗' },
   { label: 'Histórico', path: '/taller/historico', icon: History, emoji: '📁' },
   { label: 'Tienda', path: '/tienda', icon: ShoppingBag, emoji: '🛒' },

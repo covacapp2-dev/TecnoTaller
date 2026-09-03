@@ -10,7 +10,9 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     const checkSession = async () => {
       const session = await AuthService.getSession();
-      if (session) setUser(session);
+      if (session) {
+        setUser(session);
+      }
       setLoading(false);
     };
     checkSession();

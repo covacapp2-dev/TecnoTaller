@@ -90,9 +90,13 @@ export const AuthService = {
 
       const { data: profile, error } = await supabase
         .from('profiles')
-        .select('*')
+        .select('role, name')
         .eq('id', session.user.id)
         .single()
+
+      if (error) {
+        console.error('Profile query error:', error)
+      }
 
       return {
         id: session.user.id,
@@ -100,7 +104,8 @@ export const AuthService = {
         name: profile?.name || session.user.email.split('@')[0],
         role: profile?.role || session.user.user_metadata?.role || 'user',
       }
-    } catch {
+    } catch (err) {
+      console.error('getSession error:', err)
       return null
     }
   },

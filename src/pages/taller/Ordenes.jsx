@@ -1,33 +1,44 @@
 import { useState, useEffect } from 'react';
-import { Search, Calendar, Plus, Filter } from 'lucide-react';
+import { Search, Plus, ChevronDown, ChevronUp } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
 
-const tabs = [
+const filterOptions = [
   { key: 'todos', label: 'Todos' },
-  { key: 'pendiente', label: 'Pendiente' },
-  { key: 'con_turno', label: 'Con Turno' },
-  { key: 'en_progreso', label: 'En Progreso' },
-  { key: 'entregado', label: 'Entregados' },
-  { key: 'pago_pendiente', label: 'Pago Pendiente' },
-  { key: 'pagado', label: 'Pago Realizado' },
+  { key: 'pendiente', label: 'Estado Pendiente' },
+  { key: 'con_turno', label: 'Estado Con turno' },
+  { key: 'entregado', label: 'Estado Entregados' },
+  { key: 'pago_pendiente', label: 'Pago pendiente' },
+  { key: 'pagado', label: 'Pago realizado' },
 ];
 
-const statusStyles = {
-  pendiente: { bg: 'bg-amber-100', text: 'text-amber-700', dot: 'bg-amber-500' },
-  con_turno: { bg: 'bg-purple-100', text: 'text-purple-700', dot: 'bg-purple-500' },
-  en_progreso: { bg: 'bg-blue-100', text: 'text-blue-700', dot: 'bg-blue-500' },
-  entregado: { bg: 'bg-emerald-100', text: 'text-emerald-700', dot: 'bg-emerald-500' },
-  cancelado: { bg: 'bg-red-100', text: 'text-red-700', dot: 'bg-red-500' },
+const statusColors = {
+  pendiente: { bg: 'bg-amber-500/20', text: 'text-amber-400', dot: 'bg-amber-400' },
+  con_turno: { bg: 'bg-purple-500/20', text: 'text-purple-400', dot: 'bg-purple-400' },
+  en_progreso: { bg: 'bg-blue-500/20', text: 'text-blue-400', dot: 'bg-blue-400' },
+  entregado: { bg: 'bg-emerald-500/20', text: 'text-emerald-400', dot: 'bg-emerald-400' },
+  cancelado: { bg: 'bg-red-500/20', text: 'text-red-400', dot: 'bg-red-400' },
+};
+
+const statusLabels = {
+  pendiente: 'Pendiente',
+  con_turno: 'Con Turno',
+  en_progreso: 'En Progreso',
+  entregado: 'Entregado',
+  cancelado: 'Cancelado',
 };
 
 export default function Ordenes() {
   const { user } = useAuth();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('todos');
+  const [filterOpen, setFilterOpen] = useState(false);
+  const [activeFilter, setActiveFilter] = useState('todos');
   const [searchTerm, setSearchTerm] = useState('');
-  const [dateFilter, setDateFilter] = useState('');
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
+  const [sortField, setSortField] = useState('created_at');
+  const [sortDir, setSortDir] = useState('desc');
 
   useEffect(() => {
     loadOrders();
@@ -50,124 +61,180 @@ export default function Ordenes() {
   };
 
   const filtered = orders.filter(order => {
-    const matchesTab = activeTab === 'todos' ||
-      (activeTab === 'pago_pendiente' && order.pay_status === 'pendiente') ||
-      (activeTab === 'pagado' && order.pay_status === 'pagado') ||
-      order.status === activeTab;
+    const matchesFilter = activeFilter === 'todos' ||
+      (activeFilter === 'pago_pendiente' && order.pay_status === 'pendiente') ||
+      (activeFilter === 'pagado' && order.pay_status === 'pagado') ||
+      order.status === activeFilter;
     const matchesSearch = !searchTerm ||
       (order.clients?.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
       (order.vehicles?.brand || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (order.vehicles?.patente || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
       String(order.order_number).includes(searchTerm);
-    return matchesTab && matchesSearch;
+    const matchesDateFrom = !dateFrom || new Date(order.created_at) >= new Date(dateFrom);
+    const matchesDateTo = !dateTo || new Date(order.created_at) <= new Date(dateTo + 'T23:59:59');
+    return matchesFilter && matchesSearch && matchesDateFrom && matchesDateTo;
+  }).sort((a, b) => {
+    if (sortField === 'created_at') {
+      return sortDir === 'asc' ? new Date(a.created_at) - new Date(b.created_at) : new Date(b.created_at) - new Date(a.created_at);
+    }
+    if (sortField === 'total') {
+      return sortDir === 'asc' ? a.total - b.total : b.total - a.total;
+    }
+    return 0;
   });
 
+  const toggleSort = (field) => {
+    if (sortField === field) {
+      setSortDir(sortDir === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field);
+      setSortDir('desc');
+    }
+  };
+
   return (
-    <div className="space-y-6">
+    <div className="min-h-full -m-6 p-4 bg-[#0f1219] space-y-4">
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-800">Órdenes de Trabajo</h1>
-          <p className="text-gray-500 text-sm mt-1">{filtered.length} órdenes encontradas</p>
+        <h1 className="text-xl font-bold text-white">Órdenes</h1>
+        <div className="flex items-center gap-2">
+          <div className="relative">
+            <button
+              onClick={() => setFilterOpen(!filterOpen)}
+              className="flex items-center gap-2 bg-[#1a1f2e] border border-gray-600 rounded-lg px-3 py-2 text-sm text-gray-300 hover:border-primary-500 transition-colors"
+            >
+              {filterOptions.find(f => f.key === activeFilter)?.label}
+              <ChevronDown className="w-4 h-4" />
+            </button>
+            {filterOpen && (
+              <div className="absolute right-0 top-full mt-1 bg-[#1a1f2e] border border-gray-600 rounded-lg shadow-xl z-50 min-w-[200px] py-1">
+                {filterOptions.map(opt => (
+                  <button
+                    key={opt.key}
+                    onClick={() => { setActiveFilter(opt.key); setFilterOpen(false); }}
+                    className={`w-full text-left px-4 py-2 text-sm transition-colors ${
+                      activeFilter === opt.key
+                        ? 'bg-primary-600 text-white'
+                        : 'text-gray-300 hover:bg-[#222839]'
+                    }`}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+          <input
+            type="date"
+            value={dateFrom}
+            onChange={e => setDateFrom(e.target.value)}
+            className="bg-[#1a1f2e] border border-gray-600 rounded-lg px-3 py-2 text-sm text-gray-300 focus:outline-none focus:border-primary-500 w-36"
+          />
+          <input
+            type="date"
+            value={dateTo}
+            onChange={e => setDateTo(e.target.value)}
+            className="bg-[#1a1f2e] border border-gray-600 rounded-lg px-3 py-2 text-sm text-gray-300 focus:outline-none focus:border-primary-500 w-36"
+          />
+          <button className="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-1.5 transition-colors">
+            <Plus className="w-4 h-4" />
+            Nuevo
+          </button>
         </div>
-        <button className="btn-primary flex items-center gap-2">
-          <Plus className="w-4 h-4" />
-          Nueva Orden
+      </div>
+
+      <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 bg-[#1a1f2e] border border-gray-600 rounded-lg overflow-hidden">
+          <span className="text-gray-500 text-xs pl-3">ID</span>
+          <div className="w-px h-6 bg-gray-600" />
+          <button className="p-1.5 text-gray-400 hover:text-white">
+            <ChevronDown className="w-4 h-4" />
+          </button>
+        </div>
+        <div className="flex-1 relative">
+          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
+          <input
+            type="text"
+            placeholder="Buscar por cliente, vehículo o patente..."
+            className="w-full bg-[#1a1f2e] border border-gray-600 rounded-lg pl-9 pr-4 py-2 text-sm text-gray-300 placeholder-gray-500 focus:outline-none focus:border-primary-500"
+            value={searchTerm}
+            onChange={e => setSearchTerm(e.target.value)}
+          />
+        </div>
+        <button className="bg-[#1a1f2e] border border-gray-600 rounded-lg px-3 py-2 text-sm text-gray-300 hover:border-primary-500 transition-colors">
+          Por defecto
+        </button>
+        <button className="bg-primary-600 hover:bg-primary-700 text-white p-2 rounded-lg transition-colors">
+          <Search className="w-4 h-4" />
         </button>
       </div>
 
-      <div className="card">
-        <div className="flex flex-col md:flex-row gap-4 mb-5">
-          <div className="relative flex-1">
-            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Buscar por cliente, vehículo o N° de orden..."
-              className="input-field pl-10"
-              value={searchTerm}
-              onChange={e => setSearchTerm(e.target.value)}
-            />
-          </div>
-          <div className="relative">
-            <Calendar className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-            <input
-              type="date"
-              className="input-field pl-10 w-48"
-              value={dateFilter}
-              onChange={e => setDateFilter(e.target.value)}
-            />
-          </div>
+      {loading ? (
+        <div className="text-center py-16">
+          <div className="w-8 h-8 border-4 border-primary-500/30 border-t-primary-500 rounded-full animate-spin mx-auto"></div>
+          <p className="text-gray-500 mt-3 text-sm">Cargando órdenes...</p>
         </div>
-
-        <div className="flex gap-1 mb-5 overflow-x-auto pb-2 border-b border-gray-100">
-          {tabs.map(tab => (
-            <button
-              key={tab.key}
-              onClick={() => setActiveTab(tab.key)}
-              className={`px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all ${
-                activeTab === tab.key
-                  ? 'bg-primary-600 text-white shadow-md'
-                  : 'text-gray-500 hover:bg-gray-100 hover:text-gray-700'
-              }`}
-            >
-              {tab.label}
-            </button>
-          ))}
+      ) : filtered.length === 0 ? (
+        <div className="text-center py-16 text-gray-500">
+          <p className="text-sm">No se encontraron órdenes</p>
         </div>
-
-        {loading ? (
-          <div className="text-center py-12">
-            <div className="w-8 h-8 border-4 border-primary-200 border-t-primary-600 rounded-full animate-spin mx-auto"></div>
-            <p className="text-gray-400 mt-3">Cargando órdenes...</p>
-          </div>
-        ) : filtered.length === 0 ? (
-          <div className="text-center py-12 text-gray-400">
-            <Filter className="w-12 h-12 mx-auto mb-3 opacity-40" />
-            <p>No hay órdenes ainda</p>
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="table-header">
-                  <th className="text-left px-4 py-3 rounded-l-lg">Estado</th>
-                  <th className="text-left px-4 py-3">Vehículo</th>
-                  <th className="text-left px-4 py-3">Cliente</th>
-                  <th className="text-left px-4 py-3">Orden</th>
-                  <th className="text-left px-4 py-3">Pago</th>
-                  <th className="text-right px-4 py-3 rounded-r-lg">Total</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {filtered.map(order => {
-                  const st = statusStyles[order.status] || statusStyles.pendiente;
-                  return (
-                    <tr key={order.id} className="hover:bg-gray-50 transition-colors">
-                      <td className="px-4 py-3.5">
-                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${st.bg} ${st.text}`}>
-                          <span className={`w-1.5 h-1.5 rounded-full ${st.dot}`}></span>
-                          {order.status.charAt(0).toUpperCase() + order.status.slice(1).replace('_', ' ')}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3.5 text-sm font-medium text-gray-800">
-                        {order.vehicles ? `${order.vehicles.brand} ${order.vehicles.model}` : '-'}
-                      </td>
-                      <td className="px-4 py-3.5 text-sm text-gray-700">{order.clients?.name || '-'}</td>
-                      <td className="px-4 py-3.5 text-sm font-semibold text-primary-600">#{order.order_number}</td>
-                      <td className="px-4 py-3.5">
-                        <span className={`inline-flex px-2 py-0.5 rounded text-xs font-semibold ${
-                          order.pay_status === 'pagado' ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'
-                        }`}>
-                          {order.pay_status === 'pagado' ? 'Pagado' : 'Pendiente'}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3.5 text-sm font-bold text-gray-800 text-right">${Number(order.total).toLocaleString()}</td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
+      ) : (
+        <div className="bg-[#1a1f2e] border border-gray-700/50 rounded-xl overflow-hidden">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-gray-700">
+                <th className="text-left px-4 py-3 text-gray-400 font-medium">Estado</th>
+                <th className="text-left px-4 py-3 text-gray-400 font-medium">Vehículo</th>
+                <th className="text-left px-4 py-3 text-gray-400 font-medium">Cliente</th>
+                <th className="text-left px-4 py-3 text-gray-400 font-medium cursor-pointer hover:text-white" onClick={() => toggleSort('created_at')}>
+                  <span className="flex items-center gap-1">
+                    Fecha
+                    {sortField === 'created_at' && (sortDir === 'asc' ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />)}
+                  </span>
+                </th>
+                <th className="text-left px-4 py-3 text-gray-400 font-medium">Pago</th>
+                <th className="text-right px-4 py-3 text-gray-400 font-medium cursor-pointer hover:text-white" onClick={() => toggleSort('total')}>
+                  <span className="flex items-center justify-end gap-1">
+                    Total
+                    {sortField === 'total' && (sortDir === 'asc' ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />)}
+                  </span>
+                </th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-700/50">
+              {filtered.map(order => {
+                const st = statusColors[order.status] || statusColors.pendiente;
+                return (
+                  <tr key={order.id} className="hover:bg-[#222839] transition-colors cursor-pointer">
+                    <td className="px-4 py-3">
+                      <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${st.bg} ${st.text}`}>
+                        <span className={`w-1.5 h-1.5 rounded-full ${st.dot}`}></span>
+                        {statusLabels[order.status] || order.status}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-gray-300">
+                      {order.vehicles ? `${order.vehicles.brand} ${order.vehicles.model}` : '-'}
+                    </td>
+                    <td className="px-4 py-3 text-gray-300">{order.clients?.name || '-'}</td>
+                    <td className="px-4 py-3 text-gray-400 text-xs">
+                      {new Date(order.created_at).toLocaleDateString('es-AR')}
+                    </td>
+                    <td className="px-4 py-3">
+                      <span className={`text-xs font-semibold ${
+                        order.pay_status === 'pagado' ? 'text-emerald-400' : 'text-red-400'
+                      }`}>
+                        {order.pay_status === 'pagado' ? 'Pagado' : 'Pendiente'}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-right font-bold text-white">
+                      ${Number(order.total).toLocaleString()}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 }

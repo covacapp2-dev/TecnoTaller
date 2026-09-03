@@ -28,6 +28,8 @@ import Herramientas from './pages/Herramientas';
 import Configuracion from './pages/Configuracion';
 import MiCuenta from './pages/MiCuenta';
 import AdminPanel from './pages/AdminPanel';
+import ReservarTurno from './pages/public/ReservarTurno';
+import HistorialPatente from './pages/public/HistorialPatente';
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth();
@@ -84,6 +86,9 @@ function AppRoutes() {
         <Route path="mi-cuenta" element={<MiCuenta />} />
         <Route path="admin" element={<AdminPanel />} />
       </Route>
+
+      <Route path="/reservar/:userId" element={<ReservarTurno />} />
+      <Route path="/historial" element={<HistorialPatente />} />
 
       <Route path="*" element={<Navigate to="/inicio" replace />} />
     </Routes>

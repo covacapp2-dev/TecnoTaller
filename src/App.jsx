@@ -30,6 +30,7 @@ import MiCuenta from './pages/MiCuenta';
 import AdminPanel from './pages/AdminPanel';
 import ReservarTurno from './pages/public/ReservarTurno';
 import HistorialPatente from './pages/public/HistorialPatente';
+import PortalCliente from './pages/public/PortalCliente';
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth();
@@ -72,7 +73,7 @@ function AppRoutes() {
         <Route path="cuenta-corrientes" element={<CuentaCorrientes />} />
         <Route path="inventario" element={<Inventario />} />
         <Route path="trabajadores" element={<Trabajadores />} />
-        <Route path="contactos" element={<Contactos />} />
+        <Route path="clientes" element={<Contactos />} />
         <Route path="reportes/historial-caja" element={<HistorialCaja />} />
         <Route path="reportes/venta-mensual" element={<VentaMensual />} />
         <Route path="reportes/venta-anual" element={<VentaAnual />} />
@@ -87,6 +88,7 @@ function AppRoutes() {
         <Route path="admin" element={<AdminPanel />} />
       </Route>
 
+      <Route path="/portal/:userId" element={<PortalCliente />} />
       <Route path="/reservar/:userId" element={<ReservarTurno />} />
       <Route path="/historial" element={<HistorialPatente />} />
 

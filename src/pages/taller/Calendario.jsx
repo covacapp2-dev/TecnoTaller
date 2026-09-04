@@ -106,7 +106,7 @@ export default function Calendario() {
 
   const getShareLink = () => {
     const baseUrl = window.location.origin;
-    return `${baseUrl}/reservar/${user.id}`;
+    return `${baseUrl}/portal/${user.id}`;
   };
 
   const copyLink = () => {

@@ -1,12 +1,16 @@
-import { useState } from 'react';
-import { Car, Search, FileText, Calendar, Wrench } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Car, Search, FileText, Calendar, Wrench, ArrowLeft } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 
-export default function HistorialPatente() {
-  const [patente, setPatente] = useState('');
+export default function HistorialPatente({ patente: patenteProp, vehicleData, onBack }) {
+  const [patente, setPatente] = useState(patenteProp || '');
   const [searching, setSearching] = useState(false);
   const [orders, setOrders] = useState([]);
-  const [searched, setSearched] = useState(false);
+  const [searched, setSearched] = useState(!!patenteProp);
+
+  useEffect(() => {
+    if (patenteProp) handleSearch();
+  }, []);
 
   const inputClass = "bg-[#1a1f2e] border border-gray-700 rounded-lg px-3 py-2.5 text-white text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 w-full";
   const labelClass = "block text-xs text-gray-400 mb-1";
@@ -45,6 +49,12 @@ export default function HistorialPatente() {
     <div className="min-h-screen bg-[#0f1219] flex items-center justify-center p-4">
       <div className="bg-[#1a1f2e] border border-gray-700 rounded-2xl p-6 max-w-md w-full">
         <div className="text-center mb-6">
+          {onBack && (
+            <button onClick={onBack} className="flex items-center gap-2 text-gray-400 hover:text-white text-sm mb-3 mx-auto transition-colors">
+              <ArrowLeft className="w-4 h-4" />
+              Volver
+            </button>
+          )}
           <img src="/logopwa.ico" alt="TecnoTaller" className="w-12 h-12 mx-auto mb-3 rounded-xl" />
           <h1 className="text-xl font-bold text-white">Historial del Vehículo</h1>
           <p className="text-gray-400 text-xs mt-1">Ingresá la patente para ver el historial</p>

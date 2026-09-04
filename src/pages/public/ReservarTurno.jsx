@@ -3,8 +3,9 @@ import { useParams } from 'react-router-dom';
 import { Calendar, Clock, User, Phone, MapPin, Car, Check, ArrowRight } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 
-export default function ReservarTurno() {
-  const { userId } = useParams();
+export default function ReservarTurno({ userId: userIdProp, patente: patenteProp, vehicleData, onBack }) {
+  const { userId: userIdParam } = useParams();
+  const userId = userIdProp || userIdParam;
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -12,8 +13,8 @@ export default function ReservarTurno() {
     nombre: '',
     celular: '',
     direccion: '',
-    patente: '',
-    modelo: '',
+    patente: patenteProp || '',
+    modelo: vehicleData ? `${vehicleData.brand} ${vehicleData.model}` : '',
     fecha: '',
     hora: '09:00',
     descripcion: '',

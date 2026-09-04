@@ -24,7 +24,7 @@ const menuItems = [
   { path: '/cuenta-corrientes', label: 'Cuentas corrientes', icon: CreditCard },
   { path: '/inventario', label: 'Inventario', icon: Package },
   { path: '/trabajadores', label: 'Trabajadores', icon: UserCheck },
-  { path: '/contactos', label: 'Contactos', icon: Phone },
+  { path: '/clientes', label: 'Clientes', icon: Phone },
   {
     label: 'Reportes', icon: BarChart3, children: [
       { path: '/reportes/historial-caja', label: 'Historial de Caja', icon: DollarSign },

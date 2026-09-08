@@ -19,7 +19,6 @@ const menuItems = [
       { path: '/taller/historico', label: 'Histórico', icon: History },
     ]
   },
-  { path: '/tienda', label: 'Tienda', icon: ShoppingBag },
   { path: '/caja', label: 'Caja', icon: DollarSign },
   { path: '/cuenta-corrientes', label: 'Cuentas corrientes', icon: CreditCard },
   { path: '/inventario', label: 'Inventario', icon: Package },

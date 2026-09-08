@@ -12,7 +12,6 @@ const menuCards = [
   { label: 'Calendario', path: '/taller/calendario', icon: Calendar, emoji: '📅' },
   { label: 'Vehículos', path: '/taller/vehiculos', icon: Car, emoji: '🚗' },
   { label: 'Histórico', path: '/taller/historico', icon: History, emoji: '📁' },
-  { label: 'Tienda', path: '/tienda', icon: ShoppingBag, emoji: '🛒' },
   { label: 'Caja', path: '/caja', icon: DollarSign, emoji: '💰' },
   { label: 'Cuenta Corrientes', path: '/cuenta-corrientes', icon: CreditCard, emoji: '💳' },
   { label: 'Inventario', path: '/inventario', icon: Package, emoji: '📦' },

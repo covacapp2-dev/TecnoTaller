@@ -1,17 +1,22 @@
 import { useState, useEffect } from 'react';
-import { Search, Plus, Car, Eye, Edit2 } from 'lucide-react';
+import { Search, Plus, X } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
+
+const emptyForm = {
+  dominio: '', marca: '', modelo: '', tipo: '', color: '', anio: '', chasis: '', cc: '', seguro: ''
+};
 
 export default function Vehiculos() {
   const { user } = useAuth();
   const [vehicles, setVehicles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const [showModal, setShowModal] = useState(false);
+  const [form, setForm] = useState(emptyForm);
+  const [saving, setSaving] = useState(false);
 
-  useEffect(() => {
-    loadVehicles();
-  }, []);
+  useEffect(() => { loadVehicles(); }, []);
 
   const loadVehicles = async () => {
     try {
@@ -20,94 +25,177 @@ export default function Vehiculos() {
         .select('*, clients(name)')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
-
       if (!error) setVehicles(data || []);
-    } catch (error) {
-      console.error('Error loading vehicles:', error);
+    } catch (e) {
+      console.error('Error loading vehicles:', e);
     } finally {
       setLoading(false);
     }
   };
 
   const filtered = vehicles.filter(v =>
-    `${v.brand} ${v.model} ${v.patente} ${v.clients?.name || ''}`.toLowerCase().includes(search.toLowerCase())
+    `${v.brand || ''} ${v.model || ''} ${v.patente || ''} ${v.clients?.name || ''}`.toLowerCase().includes(search.toLowerCase())
   );
 
+  const handleSave = async () => {
+    if (!form.dominio.trim()) return;
+    setSaving(true);
+    try {
+      const { error } = await supabase.from('vehicles').insert({
+        user_id: user.id,
+        patente: form.dominio.trim(),
+        brand: form.marca.trim(),
+        model: form.modelo.trim(),
+        vehicle_type: form.tipo.trim(),
+        color: form.color.trim(),
+        year: form.anio ? Number(form.anio) : null,
+        chasis_number: form.chasis.trim(),
+        cc: form.cc ? Number(form.cc) : null,
+        insurance: form.seguro.trim(),
+      });
+      if (!error) {
+        setShowModal(false);
+        setForm(emptyForm);
+        loadVehicles();
+      }
+    } catch (e) {
+      console.error('Error saving vehicle:', e);
+    } finally {
+      setSaving(false);
+    }
+  };
+
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-800">Vehículos</h1>
-          <p className="text-gray-500 text-sm mt-1">{filtered.length} vehículos registrados</p>
-        </div>
-        <button className="btn-primary flex items-center gap-2">
+    <div className="h-full bg-[#0f1219] p-4 flex flex-col">
+      <div className="flex items-center justify-between mb-4 flex-shrink-0">
+        <h1 className="text-xl font-bold text-white">Vehículos</h1>
+        <button onClick={() => setShowModal(true)} className="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors">
           <Plus className="w-4 h-4" />
-          Nuevo Vehículo
+          Nuevo
         </button>
       </div>
 
-      <div className="card">
-        <div className="relative mb-5">
-          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-          <input
-            type="text"
-            placeholder="Buscar por marca, modelo, patente o cliente..."
-            className="input-field pl-10"
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-          />
-        </div>
+      <div className="flex-1 overflow-auto">
+        <div className="bg-[#1a1f2e] rounded-xl border border-gray-700/50 overflow-hidden flex flex-col h-full">
+          <div className="flex items-center gap-2 p-3 border-b border-gray-700/50 flex-shrink-0">
+            <select className="bg-[#0f1219] border border-gray-600 rounded-lg px-3 py-1.5 text-white text-sm">
+              <option>Marca</option>
+            </select>
+            <button className="bg-primary-600 hover:bg-primary-700 text-white w-7 h-7 rounded-lg flex items-center justify-center text-sm">+</button>
+            <div className="flex-1" />
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="Buscar"
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                className="bg-[#0f1219] border border-gray-600 rounded-lg px-3 py-1.5 text-white text-sm w-48"
+              />
+            </div>
+            <button className="bg-primary-600 hover:bg-primary-700 text-white px-3 py-1.5 rounded-lg text-sm">🔍</button>
+          </div>
 
-        {loading ? (
-          <div className="text-center py-12">
-            <div className="w-8 h-8 border-4 border-primary-200 border-t-primary-600 rounded-full animate-spin mx-auto"></div>
+          <div className="flex-1 overflow-auto">
+            <table className="w-full text-sm">
+              <thead className="bg-[#151a26] sticky top-0">
+                <tr className="text-gray-400 text-left text-xs uppercase">
+                  <th className="px-4 py-3 font-medium">Vehículo</th>
+                  <th className="px-4 py-3 font-medium">Dominio</th>
+                  <th className="px-4 py-3 font-medium">Tipo</th>
+                  <th className="px-4 py-3 font-medium">Color</th>
+                  <th className="px-4 py-3 font-medium">Año</th>
+                  <th className="px-4 py-3 font-medium">N° Chasis</th>
+                  <th className="px-4 py-3 font-medium">CC</th>
+                  <th className="px-4 py-3 font-medium">Seguro</th>
+                  <th className="px-4 py-3 font-medium">Órdenes</th>
+                </tr>
+              </thead>
+              <tbody>
+                {loading ? (
+                  <tr><td colSpan={9} className="text-center py-12 text-gray-500">Cargando...</td></tr>
+                ) : filtered.length === 0 ? (
+                  <tr><td colSpan={9} className="text-center py-12 text-gray-500">No hay vehículos</td></tr>
+                ) : filtered.map(v => (
+                  <tr key={v.id} className="border-t border-gray-700/30 hover:bg-[#1e2433] text-gray-300">
+                    <td className="px-4 py-3">{v.brand} {v.model}</td>
+                    <td className="px-4 py-3 font-mono font-bold text-white">{v.patente}</td>
+                    <td className="px-4 py-3">{v.vehicle_type || '-'}</td>
+                    <td className="px-4 py-3">{v.color || '-'}</td>
+                    <td className="px-4 py-3">{v.year || '-'}</td>
+                    <td className="px-4 py-3">{v.chasis_number || '-'}</td>
+                    <td className="px-4 py-3">{v.cc || '-'}</td>
+                    <td className="px-4 py-3">{v.insurance || '-'}</td>
+                    <td className="px-4 py-3 text-primary-400">0</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
-        ) : filtered.length === 0 ? (
-          <div className="text-center py-12 text-gray-400">
-            <Car className="w-12 h-12 mx-auto mb-3 opacity-40" />
-            <p>No hay vehículos ainda</p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {filtered.map(v => (
-              <div key={v.id} className="border border-gray-200 rounded-xl p-4 hover:shadow-md hover:border-primary-200 transition-all group">
-                <div className="flex items-start justify-between mb-3">
-                  <div className="flex items-center gap-3">
-                    <div className="w-11 h-11 bg-gradient-to-br from-primary-500 to-primary-600 rounded-xl flex items-center justify-center shadow-md">
-                      <Car className="w-5 h-5 text-white" />
-                    </div>
-                    <div>
-                      <p className="font-bold text-gray-800">{v.brand} {v.model}</p>
-                      <p className="text-xs text-gray-400">{v.year} • {v.color}</p>
-                    </div>
-                  </div>
-                  <span className="text-xs font-bold px-2 py-0.5 rounded bg-primary-100 text-primary-700">
-                    {v.patente}
-                  </span>
-                </div>
-                <div className="space-y-1.5 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-gray-500">Cliente</span>
-                    <span className="font-medium text-gray-700">{v.clients?.name || '-'}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-500">Kilometraje</span>
-                    <span className="font-medium text-gray-700">{Number(v.km).toLocaleString()} km</span>
-                  </div>
-                </div>
-                <div className="flex gap-2 mt-4 pt-3 border-t border-gray-100">
-                  <button className="flex-1 flex items-center justify-center gap-1 text-xs font-medium text-primary-600 hover:bg-primary-50 py-1.5 rounded-lg transition-colors">
-                    <Eye className="w-3.5 h-3.5" /> Ver
-                  </button>
-                  <button className="flex-1 flex items-center justify-center gap-1 text-xs font-medium text-gray-600 hover:bg-gray-100 py-1.5 rounded-lg transition-colors">
-                    <Edit2 className="w-3.5 h-3.5" /> Editar
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
+        </div>
       </div>
+
+      {showModal && (
+        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4" onClick={() => setShowModal(false)}>
+          <div className="bg-[#1a1f2e] border border-gray-700 rounded-2xl w-full max-w-2xl p-6" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-lg font-bold text-white">Nuevo Vehículo</h2>
+              <button onClick={() => setShowModal(false)} className="text-gray-400 hover:text-white"><X className="w-5 h-5" /></button>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-red-400 text-xs font-medium mb-1">* Dominio</label>
+                <input value={form.dominio} onChange={e => setForm({...form, dominio: e.target.value})} className="w-full bg-[#0f1219] border border-gray-600 rounded-lg px-3 py-2 text-white text-sm" />
+              </div>
+              <div>
+                <label className="block text-gray-400 text-xs font-medium mb-1">Año:</label>
+                <input value={form.anio} onChange={e => setForm({...form, anio: e.target.value})} className="w-full bg-[#0f1219] border border-gray-600 rounded-lg px-3 py-2 text-white text-sm" />
+              </div>
+              <div>
+                <label className="block text-gray-400 text-xs font-medium mb-1">Marca:</label>
+                <select value={form.marca} onChange={e => setForm({...form, marca: e.target.value})} className="w-full bg-[#0f1219] border border-gray-600 rounded-lg px-3 py-2 text-white text-sm">
+                  <option value="">Seleccionar...</option>
+                  <option>Fiat</option><option>Volkswagen</option><option>Toyota</option><option>Ford</option><option>Chevrolet</option><option>Peugeot</option><option>Renault</option><option>Honda</option><option>Suzuki</option><option>Jeep</option><option>Citroën</option><option>Otro</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-gray-400 text-xs font-medium mb-1">N° Chasis:</label>
+                <input value={form.chasis} onChange={e => setForm({...form, chasis: e.target.value})} className="w-full bg-[#0f1219] border border-gray-600 rounded-lg px-3 py-2 text-white text-sm" />
+              </div>
+              <div>
+                <label className="block text-gray-400 text-xs font-medium mb-1">Modelo:</label>
+                <input value={form.modelo} onChange={e => setForm({...form, modelo: e.target.value})} className="w-full bg-[#0f1219] border border-gray-600 rounded-lg px-3 py-2 text-white text-sm" />
+              </div>
+              <div>
+                <label className="block text-gray-400 text-xs font-medium mb-1">CC:</label>
+                <input value={form.cc} onChange={e => setForm({...form, cc: e.target.value})} className="w-full bg-[#0f1219] border border-gray-600 rounded-lg px-3 py-2 text-white text-sm" />
+              </div>
+              <div>
+                <label className="block text-gray-400 text-xs font-medium mb-1">Tipo:</label>
+                <select value={form.tipo} onChange={e => setForm({...form, tipo: e.target.value})} className="w-full bg-[#0f1219] border border-gray-600 rounded-lg px-3 py-2 text-white text-sm">
+                  <option value="">Seleccionar...</option>
+                  <option>Auto</option><option>Camioneta</option><option>Moto</option><option>Camión</option><option>Van</option><option>Otro</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-gray-400 text-xs font-medium mb-1">Seguro:</label>
+                <input value={form.seguro} onChange={e => setForm({...form, seguro: e.target.value})} className="w-full bg-[#0f1219] border border-gray-600 rounded-lg px-3 py-2 text-white text-sm" />
+              </div>
+              <div>
+                <label className="block text-gray-400 text-xs font-medium mb-1">Color:</label>
+                <input value={form.color} onChange={e => setForm({...form, color: e.target.value})} className="w-full bg-[#0f1219] border border-gray-600 rounded-lg px-3 py-2 text-white text-sm" />
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-3 mt-6">
+              <button onClick={() => setShowModal(false)} className="px-4 py-2 text-gray-400 hover:text-white text-sm transition-colors">Cancelar</button>
+              <button onClick={handleSave} disabled={saving || !form.dominio.trim()} className="bg-primary-600 hover:bg-primary-700 disabled:opacity-50 text-white px-6 py-2 rounded-lg text-sm font-medium transition-colors">
+                {saving ? 'Guardando...' : 'Guardar'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

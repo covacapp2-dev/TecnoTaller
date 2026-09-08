@@ -42,7 +42,7 @@ export default function Dashboard() {
           <button
             key={card.path}
             onClick={() => navigate(card.path)}
-            className="group relative bg-[#1a1f2e] hover:bg-[#222839] border border-gray-700/50 hover:border-primary-500/50 rounded-xl p-2 flex flex-col items-center justify-center gap-1 transition-all duration-200 hover:scale-[1.02] hover:shadow-lg hover:shadow-primary-500/10 cursor-pointer"
+            className="aspect-square group relative bg-[#1a1f2e] hover:bg-[#222839] border border-gray-700/50 hover:border-primary-500/50 rounded-xl p-2 flex flex-col items-center justify-center gap-1 transition-all duration-200 hover:scale-[1.02] hover:shadow-lg hover:shadow-primary-500/10 cursor-pointer"
           >
             <span className="text-3xl group-hover:scale-110 transition-transform duration-200">
               {card.emoji}

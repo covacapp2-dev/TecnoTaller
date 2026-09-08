@@ -1,95 +1,103 @@
-import { useState, useEffect } from 'react';
-import { Search, Download, Filter } from 'lucide-react';
+import { useState } from 'react';
+import { Search, Car } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
 
 export default function Historico() {
   const { user } = useAuth();
-  const [historical, setHistorical] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const [vehicle, setVehicle] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [searched, setSearched] = useState(false);
 
-  useEffect(() => {
-    loadHistorical();
-  }, []);
-
-  const loadHistorical = async () => {
+  const handleSearch = async () => {
+    if (!search.trim()) return;
+    setLoading(true);
+    setSearched(true);
     try {
       const { data, error } = await supabase
-        .from('work_orders')
-        .select('*, clients(name), vehicles(brand, model)')
+        .from('vehicles')
+        .select('*')
         .eq('user_id', user.id)
-        .eq('status', 'entregado')
-        .order('created_at', { ascending: false });
-
-      if (!error) setHistorical(data || []);
-    } catch (error) {
-      console.error('Error loading historical:', error);
+        .ilike('patente', search.trim())
+        .single();
+      if (!error && data) {
+        setVehicle(data);
+      } else {
+        setVehicle(null);
+      }
+    } catch (e) {
+      console.error('Error searching vehicle:', e);
+      setVehicle(null);
     } finally {
       setLoading(false);
     }
   };
 
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter') handleSearch();
+  };
+
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-800">Histórico</h1>
-          <p className="text-gray-500 text-sm mt-1">{historical.length} servicios completados</p>
-        </div>
-        <button className="btn-secondary flex items-center gap-2">
-          <Download className="w-4 h-4" />
-          Exportar
+    <div className="h-full bg-[#0f1219] p-4 flex flex-col">
+      <div className="mb-4 flex-shrink-0">
+        <h1 className="text-xl font-bold text-white">Histórico</h1>
+      </div>
+
+      <div className="flex gap-2 mb-4 flex-shrink-0">
+        <input
+          type="text"
+          placeholder="Buscar Vehiculo.."
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          onKeyDown={handleKeyDown}
+          className="flex-1 bg-[#1a1f2e] border border-gray-600 rounded-lg px-4 py-2.5 text-white text-sm placeholder-gray-500"
+        />
+        <button onClick={handleSearch} className="bg-primary-600 hover:bg-primary-700 text-white w-10 h-10 rounded-lg flex items-center justify-center transition-colors flex-shrink-0">
+          <Search className="w-5 h-5" />
         </button>
       </div>
 
-      <div className="card">
-        <div className="relative mb-5">
-          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-          <input
-            type="text"
-            placeholder="Buscar en histórico..."
-            className="input-field pl-10"
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-          />
-        </div>
-
+      <div className="flex-1 overflow-auto">
         {loading ? (
-          <div className="text-center py-12">
-            <div className="w-8 h-8 border-4 border-primary-200 border-t-primary-600 rounded-full animate-spin mx-auto"></div>
+          <div className="text-center py-12 text-gray-500">Buscando...</div>
+        ) : searched && !vehicle ? (
+          <div className="text-center py-12 text-gray-500">No se encontró ningún vehículo con esa patente</div>
+        ) : vehicle ? (
+          <div className="bg-[#1a1f2e] border border-gray-700/50 rounded-xl p-5">
+            <div className="flex items-start gap-6">
+              <div className="w-20 h-20 bg-[#0f1219] rounded-xl flex items-center justify-center flex-shrink-0">
+                <Car className="w-10 h-10 text-primary-400" />
+              </div>
+              <div className="flex-1 grid grid-cols-2 gap-x-8 gap-y-3">
+                <div>
+                  <span className="text-gray-500 text-sm">Dominio:</span>
+                  <p className="text-white font-mono font-bold">{vehicle.patente}</p>
+                </div>
+                <div>
+                  <span className="text-gray-500 text-sm">Tipo:</span>
+                  <p className="text-white">{vehicle.vehicle_type || '-'}</p>
+                </div>
+                <div>
+                  <span className="text-gray-500 text-sm">Año:</span>
+                  <p className="text-white">{vehicle.year || '-'}</p>
+                </div>
+                <div>
+                  <span className="text-gray-500 text-sm">N° Chasis:</span>
+                  <p className="text-white">{vehicle.chasis_number || '-'}</p>
+                </div>
+                <div>
+                  <span className="text-gray-500 text-sm">Color:</span>
+                  <p className="text-white">{vehicle.color || '-'}</p>
+                </div>
+                <div>
+                  <span className="text-gray-500 text-sm">Seguro:</span>
+                  <p className="text-white">{vehicle.insurance || '-'}</p>
+                </div>
+              </div>
+            </div>
           </div>
-        ) : historical.length === 0 ? (
-          <div className="text-center py-12 text-gray-400">
-            <Filter className="w-12 h-12 mx-auto mb-3 opacity-40" />
-            <p>No hay servicios completados ainda</p>
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="table-header">
-                  <th className="text-left px-4 py-3 rounded-l-lg">Orden</th>
-                  <th className="text-left px-4 py-3">Cliente</th>
-                  <th className="text-left px-4 py-3">Vehículo</th>
-                  <th className="text-right px-4 py-3 rounded-r-lg">Total</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {historical.map(h => (
-                  <tr key={h.id} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-4 py-3.5 text-sm font-semibold text-primary-600">#{h.order_number}</td>
-                    <td className="px-4 py-3.5 text-sm text-gray-700">{h.clients?.name || '-'}</td>
-                    <td className="px-4 py-3.5 text-sm text-gray-700">
-                      {h.vehicles ? `${h.vehicles.brand} ${h.vehicles.model}` : '-'}
-                    </td>
-                    <td className="px-4 py-3.5 text-sm font-bold text-gray-800 text-right">${Number(h.total).toLocaleString()}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+        ) : null}
       </div>
     </div>
   );

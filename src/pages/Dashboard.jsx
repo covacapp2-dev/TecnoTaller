@@ -7,11 +7,7 @@ import {
 } from 'lucide-react';
 
 const menuCards = [
-  { label: 'Órdenes', path: '/taller/ordenes', icon: ClipboardList, emoji: '🔧' },
-  { label: 'Presupuesto', path: '/taller/presupuesto', icon: BookOpen, emoji: '📋' },
-  { label: 'Calendario', path: '/taller/calendario', icon: Calendar, emoji: '📅' },
-  { label: 'Vehículos', path: '/taller/vehiculos', icon: Car, emoji: '🚗' },
-  { label: 'Histórico', path: '/taller/historico', icon: History, emoji: '📁' },
+  { label: 'Taller', path: '/taller', icon: Wrench, emoji: '🔧' },
   { label: 'Caja', path: '/caja', icon: DollarSign, emoji: '💰' },
   { label: 'Cuentas Corrientes', path: '/cuenta-corrientes', icon: CreditCard, emoji: '💳' },
   { label: 'Inventario', path: '/inventario', icon: Package, emoji: '📦' },

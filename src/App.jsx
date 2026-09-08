@@ -4,6 +4,7 @@ import Layout from './components/Layout';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
+import Taller from './pages/Taller';
 import Ordenes from './pages/taller/Ordenes';
 import Presupuesto from './pages/taller/Presupuesto';
 import Calendario from './pages/taller/Calendario';
@@ -62,6 +63,7 @@ function AppRoutes() {
       <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
         <Route index element={<Navigate to="/inicio" replace />} />
         <Route path="inicio" element={<Dashboard />} />
+        <Route path="taller" element={<Taller />} />
         <Route path="taller/ordenes" element={<Ordenes />} />
         <Route path="taller/presupuesto" element={<Presupuesto />} />
         <Route path="taller/calendario" element={<Calendario />} />

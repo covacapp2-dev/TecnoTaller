@@ -5,6 +5,8 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 import Taller from './pages/Taller';
+import Reportes from './pages/Reportes';
+import Informes from './pages/Informes';
 import Ordenes from './pages/taller/Ordenes';
 import Presupuesto from './pages/taller/Presupuesto';
 import Calendario from './pages/taller/Calendario';
@@ -24,7 +26,6 @@ import VentaDividida from './pages/reportes/VentaDividida';
 import HistoricoCliente from './pages/informes/HistoricoCliente';
 import HistoricoVehiculo from './pages/informes/HistoricoVehiculo';
 import HistoricoDetalladoVehiculo from './pages/informes/HistoricoDetalladoVehiculo';
-import Informes from './pages/Informes';
 import Herramientas from './pages/Herramientas';
 import Configuracion from './pages/Configuracion';
 import MiCuenta from './pages/MiCuenta';
@@ -64,6 +65,8 @@ function AppRoutes() {
         <Route index element={<Navigate to="/inicio" replace />} />
         <Route path="inicio" element={<Dashboard />} />
         <Route path="taller" element={<Taller />} />
+        <Route path="reportes" element={<Reportes />} />
+        <Route path="informes" element={<Informes />} />
         <Route path="taller/ordenes" element={<Ordenes />} />
         <Route path="taller/presupuesto" element={<Presupuesto />} />
         <Route path="taller/calendario" element={<Calendario />} />
@@ -80,7 +83,6 @@ function AppRoutes() {
         <Route path="reportes/venta-mensual" element={<VentaMensual />} />
         <Route path="reportes/venta-anual" element={<VentaAnual />} />
         <Route path="reportes/venta-dividida" element={<VentaDividida />} />
-        <Route path="informes" element={<Informes />} />
         <Route path="informes/historico-cliente" element={<HistoricoCliente />} />
         <Route path="informes/historico-vehiculo" element={<HistoricoVehiculo />} />
         <Route path="informes/historico-detallado-vehiculo" element={<HistoricoDetalladoVehiculo />} />

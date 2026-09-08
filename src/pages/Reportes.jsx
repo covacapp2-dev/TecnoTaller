@@ -1,24 +1,25 @@
 import { useNavigate } from 'react-router-dom';
-import { Users, Car, History } from 'lucide-react';
+import { DollarSign, TrendingUp, Activity, PieChart } from 'lucide-react';
 
-const informesOptions = [
-  { label: 'Histórico por Cliente', path: '/informes/historico-cliente', icon: Users, emoji: '👤', desc: 'Historial de un cliente' },
-  { label: 'Histórico por Vehículo', path: '/informes/historico-vehiculo', icon: Car, emoji: '🚗', desc: 'Historial de un vehículo' },
-  { label: 'Hist. Detallado por Vehículo', path: '/informes/historico-detallado-vehiculo', icon: History, emoji: '📋', desc: 'Detalle completo del vehículo' },
+const reportesOptions = [
+  { label: 'Historial de Caja', path: '/reportes/historial-caja', icon: DollarSign, emoji: '💰', desc: 'Movimientos de caja' },
+  { label: 'Venta Mensual', path: '/reportes/venta-mensual', icon: TrendingUp, emoji: '📈', desc: 'Resumen mensual' },
+  { label: 'Venta Anual', path: '/reportes/venta-anual', icon: Activity, emoji: '📊', desc: 'Resumen anual' },
+  { label: 'Venta Dividida', path: '/reportes/venta-dividida', icon: PieChart, emoji: '🥧', desc: 'Ventas por categoría' },
 ];
 
-export default function Informes() {
+export default function Reportes() {
   const navigate = useNavigate();
 
   return (
     <div className="h-full bg-[#0f1219] p-4 flex flex-col">
       <div className="mb-4 flex-shrink-0">
-        <h1 className="text-xl font-bold text-white">Informes</h1>
-        <p className="text-gray-500 text-xs mt-1">Seleccioná un informe</p>
+        <h1 className="text-xl font-bold text-white">Reportes</h1>
+        <p className="text-gray-500 text-xs mt-1">Seleccioná un reporte</p>
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 flex-1 content-start">
-        {informesOptions.map((card) => (
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 flex-1 content-start">
+        {reportesOptions.map((card) => (
           <button
             key={card.path}
             onClick={() => navigate(card.path)}

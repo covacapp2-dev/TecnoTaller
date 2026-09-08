@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import {
-  Home, ClipboardList, BookOpen, Calendar, Bell, Car, History,
+  Home, ClipboardList, BookOpen, Calendar, Bell, Car, History, Wrench,
   ShoppingBag, DollarSign, CreditCard, Package, UserCheck, Phone,
   BarChart3, FileText, Settings, Users, Shield
 } from 'lucide-react';

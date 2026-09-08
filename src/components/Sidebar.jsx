@@ -2,44 +2,36 @@ import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import {
-  Home, Wrench, Calendar, Bell, Car, History, ShoppingBag, DollarSign,
+  Home, Wrench, Calendar, Car, History, DollarSign,
   CreditCard, Package, UserCheck, Phone, BarChart3, FileText,
-  Sliders, BookOpen, Users, LogOut, Menu, X, ChevronDown, ChevronRight,
-  Shield, ClipboardList, TrendingUp, PieChart, Activity
+  Sliders, BookOpen, Users, LogOut, Menu, X,
+  Shield, ClipboardList, TrendingUp, PieChart, Activity, Cog
 } from 'lucide-react';
 
 const menuItems = [
   { path: '/inicio', label: 'Inicio', icon: Home },
-  {
-    label: 'Taller', icon: Wrench, children: [
-      { path: '/taller/ordenes', label: 'Órdenes', icon: ClipboardList },
-      { path: '/taller/presupuesto', label: 'Presupuesto', icon: BookOpen },
-      { path: '/taller/calendario', label: 'Calendario', icon: Calendar },
-      { path: '/taller/vehiculos', label: 'Vehículos', icon: Car },
-      { path: '/taller/historico', label: 'Histórico', icon: History },
-    ]
-  },
+  { label: 'separator', text: 'TALLER' },
+  { path: '/taller/ordenes', label: 'Órdenes', icon: ClipboardList },
+  { path: '/taller/presupuesto', label: 'Presupuesto', icon: BookOpen },
+  { path: '/taller/calendario', label: 'Calendario', icon: Calendar },
+  { path: '/taller/vehiculos', label: 'Vehículos', icon: Car },
+  { path: '/taller/historico', label: 'Histórico', icon: History },
+  { label: 'separator', text: 'OPERACIONES' },
   { path: '/caja', label: 'Caja', icon: DollarSign },
-  { path: '/cuenta-corrientes', label: 'Cuentas corrientes', icon: CreditCard },
+  { path: '/cuenta-corrientes', label: 'Cuentas Corrientes', icon: CreditCard },
   { path: '/inventario', label: 'Inventario', icon: Package },
   { path: '/trabajadores', label: 'Trabajadores', icon: UserCheck },
   { path: '/clientes', label: 'Clientes', icon: Phone },
-  {
-    label: 'Reportes', icon: BarChart3, children: [
-      { path: '/reportes/historial-caja', label: 'Historial de Caja', icon: DollarSign },
-      { path: '/reportes/venta-mensual', label: 'Venta Mensual', icon: TrendingUp },
-      { path: '/reportes/venta-anual', label: 'Venta Anual', icon: Activity },
-      { path: '/reportes/venta-dividida', label: 'Venta Dividida', icon: PieChart },
-    ]
-  },
-  {
-    label: 'Informes', icon: FileText, children: [
-      { path: '/informes/historico-cliente', label: 'Histórico por Cliente', icon: Users },
-      { path: '/informes/historico-vehiculo', label: 'Histórico por Vehículo', icon: Car },
-      { path: '/informes/historico-detallado-vehiculo', label: 'Histórico Detallado por Vehículo', icon: History },
-    ]
-  },
-  { path: '/configuracion', label: 'Configuraciones', icon: Sliders },
+  { label: 'separator', text: 'ANÁLISIS' },
+  { path: '/reportes/historial-caja', label: 'Historial Caja', icon: DollarSign },
+  { path: '/reportes/venta-mensual', label: 'Venta Mensual', icon: TrendingUp },
+  { path: '/reportes/venta-anual', label: 'Venta Anual', icon: Activity },
+  { path: '/reportes/venta-dividida', label: 'Venta Dividida', icon: PieChart },
+  { path: '/informes/historico-cliente', label: 'Hist. por Cliente', icon: Users },
+  { path: '/informes/historico-vehiculo', label: 'Hist. por Vehículo', icon: Car },
+  { path: '/informes/historico-detallado-vehiculo', label: 'Hist. Detallado', icon: History },
+  { label: 'separator', text: 'SISTEMA' },
+  { path: '/configuracion', label: 'Configuraciones', icon: Cog },
 ];
 
 const bottomItems = [
@@ -48,7 +40,6 @@ const bottomItems = [
 
 export default function Sidebar({ collapsed, onToggle }) {
   const location = useLocation();
-  const [expandedMenu, setExpandedMenu] = useState(null);
   const { logout, user } = useAuth();
   const navigate = useNavigate();
 
@@ -56,16 +47,7 @@ export default function Sidebar({ collapsed, onToggle }) {
     ? [...menuItems, { path: '/admin', label: 'Admin', icon: Shield }]
     : menuItems;
 
-  const toggleSubmenu = (label) => {
-    setExpandedMenu(expandedMenu === label ? null : label);
-  };
-
   const isActive = (path) => location.pathname === path;
-  const isParentActive = (item) => {
-    if (item.path) return isActive(item.path);
-    if (item.children) return item.children.some(c => isActive(c.path));
-    return false;
-  };
 
   const handleLogout = () => {
     logout();
@@ -100,52 +82,25 @@ export default function Sidebar({ collapsed, onToggle }) {
         </div>
 
         <nav className="flex-1 p-3 space-y-0.5 overflow-y-auto">
-          {allMenuItems.map((item) => (
-            <div key={item.label}>
-              {item.children ? (
-                <>
-                  <button
-                    onClick={() => toggleSubmenu(item.label)}
-                    className={`sidebar-link w-full ${isParentActive(item) ? 'bg-primary-700/50 text-white' : 'text-primary-200 hover:bg-primary-700/30 hover:text-white'}`}
-                  >
-                    <item.icon className="w-5 h-5 flex-shrink-0" />
-                    {collapsed && (
-                      <>
-                        <span className="flex-1 text-left">{item.label}</span>
-                        {expandedMenu === item.label ? (
-                          <ChevronDown className="w-4 h-4" />
-                        ) : (
-                          <ChevronRight className="w-4 h-4" />
-                        )}
-                      </>
-                    )}
-                  </button>
-                  {collapsed && expandedMenu === item.label && (
-                    <div className="ml-4 mt-0.5 space-y-0.5 border-l border-primary-700 pl-3">
-                      {item.children.map((child) => (
-                        <Link
-                          key={child.path}
-                          to={child.path}
-                          className={`sidebar-link text-xs ${isActive(child.path) ? 'bg-primary-500 text-white' : 'text-primary-300 hover:bg-primary-700/30 hover:text-white'}`}
-                        >
-                          <child.icon className="w-4 h-4 flex-shrink-0" />
-                          <span>{child.label}</span>
-                        </Link>
-                      ))}
-                    </div>
-                  )}
-                </>
-              ) : (
-                <Link
-                  to={item.path}
-                  className={`sidebar-link ${isActive(item.path) ? 'bg-primary-500 text-white shadow-md' : 'text-primary-200 hover:bg-primary-700/30 hover:text-white'}`}
-                >
-                  <item.icon className="w-5 h-5 flex-shrink-0" />
-                  {collapsed && <span>{item.label}</span>}
-                </Link>
-              )}
-            </div>
-          ))}
+          {allMenuItems.map((item, idx) => {
+            if (item.label === 'separator') {
+              return collapsed ? (
+                <div key={`sep-${idx}`} className="pt-3 pb-1 px-2">
+                  <span className="text-[10px] font-bold text-primary-400 uppercase tracking-wider">{item.text}</span>
+                </div>
+              ) : null;
+            }
+            return (
+              <Link
+                key={item.path}
+                to={item.path}
+                className={`sidebar-link ${isActive(item.path) ? 'bg-primary-500 text-white shadow-md' : 'text-primary-200 hover:bg-primary-700/30 hover:text-white'}`}
+              >
+                <item.icon className="w-5 h-5 flex-shrink-0" />
+                {collapsed && <span>{item.label}</span>}
+              </Link>
+            );
+          })}
         </nav>
 
         <div className="p-3 border-t border-primary-700/50 space-y-0.5">

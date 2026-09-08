@@ -13,7 +13,7 @@ const menuCards = [
   { label: 'Vehículos', path: '/taller/vehiculos', icon: Car, emoji: '🚗' },
   { label: 'Histórico', path: '/taller/historico', icon: History, emoji: '📁' },
   { label: 'Caja', path: '/caja', icon: DollarSign, emoji: '💰' },
-  { label: 'Cuenta Corrientes', path: '/cuenta-corrientes', icon: CreditCard, emoji: '💳' },
+  { label: 'Cuentas Corrientes', path: '/cuenta-corrientes', icon: CreditCard, emoji: '💳' },
   { label: 'Inventario', path: '/inventario', icon: Package, emoji: '📦' },
   { label: 'Trabajadores', path: '/trabajadores', icon: UserCheck, emoji: '👷' },
   { label: 'Clientes', path: '/clientes', icon: Phone, emoji: '📞' },

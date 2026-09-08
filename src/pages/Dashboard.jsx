@@ -37,7 +37,7 @@ export default function Dashboard() {
         <p className="text-gray-400 text-[9px] uppercase tracking-widest">Soluciones Automotrices</p>
       </div>
 
-      <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-2 flex-1 auto-rows-fr content-start">
+      <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-2 content-start">
         {allCards.map((card) => (
           <button
             key={card.path}

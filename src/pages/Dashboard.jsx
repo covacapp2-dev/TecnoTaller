@@ -13,8 +13,8 @@ const menuCards = [
   { label: 'Inventario', path: '/inventario', icon: Package, emoji: '📦' },
   { label: 'Trabajadores', path: '/trabajadores', icon: UserCheck, emoji: '👷' },
   { label: 'Clientes', path: '/clientes', icon: Phone, emoji: '📞' },
-  { label: 'Reportes', path: '/reportes/historial-caja', icon: BarChart3, emoji: '📊' },
-  { label: 'Informes', path: '/informes/historico-cliente', icon: FileText, emoji: '📝' },
+  { label: 'Reportes', path: '/reportes', icon: BarChart3, emoji: '📊' },
+  { label: 'Informes', path: '/informes', icon: FileText, emoji: '📝' },
   { label: 'Configuración', path: '/configuracion', icon: Settings, emoji: '⚙️' },
   { label: 'Mi Cuenta', path: '/mi-cuenta', icon: Users, emoji: '👤' },
 ];

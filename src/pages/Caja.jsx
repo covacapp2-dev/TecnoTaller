@@ -1,133 +1,212 @@
 import { useState, useEffect } from 'react';
-import { DollarSign, TrendingUp, TrendingDown, ArrowUpRight, ArrowDownRight, Plus } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 
+const operaciones = [
+  'Órdenes de reparación',
+  'Ventas',
+  'Compras',
+  'Movimientos de caja',
+  'Cobros de cuentas corrientes',
+  'Pagos a trabajadores',
+];
+
 export default function Caja() {
   const { user } = useAuth();
-  const [transactions, setTransactions] = useState([]);
+  const [cajaAbierta, setCajaAbierta] = useState(false);
+  const [montoInicial, setMontoInicial] = useState('');
+  const [showAbrirModal, setShowAbrirModal] = useState(false);
+  const [showCerrarModal, setShowCerrarModal] = useState(false);
+  const [showMovimientoModal, setShowMovimientoModal] = useState(false);
+  const [movimientos, setMovimientos] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    loadTransactions();
-  }, []);
+  useEffect(() => { loadCaja(); }, []);
 
-  const loadTransactions = async () => {
+  const loadCaja = async () => {
     try {
-      const { data, error } = await supabase
-        .from('cash_movements')
+      const { data } = await supabase
+        .from('cash_register')
         .select('*')
         .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
+        .eq('status', 'abierta')
+        .order('opened_at', { ascending: false })
+        .limit(1)
+        .single();
 
-      if (!error) setTransactions(data || []);
-    } catch (error) {
-      console.error('Error loading transactions:', error);
+      if (data) {
+        setCajaAbierta(true);
+        loadMovimientos(data.id);
+      }
+    } catch (e) {
+      console.error('Error loading caja:', e);
     } finally {
       setLoading(false);
     }
   };
 
-  const totalIngresos = transactions.filter(t => t.type === 'ingreso').reduce((s, t) => s + Number(t.amount), 0);
-  const totalEgresos = transactions.filter(t => t.type === 'egreso').reduce((s, t) => s + Number(t.amount), 0);
-  const balance = totalIngresos - totalEgresos;
+  const loadMovimientos = async (registerId) => {
+    const { data } = await supabase
+      .from('cash_movements')
+      .select('*')
+      .eq('register_id', registerId)
+      .order('created_at', { ascending: true });
+    setMovimientos(data || []);
+  };
+
+  const abrirCaja = async () => {
+    if (!montoInicial) return;
+    const { data, error } = await supabase.from('cash_register').insert({
+      user_id: user.id,
+      opening_amount: Number(montoInicial),
+      status: 'abierta',
+    }).select().single();
+
+    if (!error && data) {
+      setCajaAbierta(true);
+      setShowAbrirModal(false);
+      setMontoInicial('');
+    }
+  };
+
+  const cerrarCaja = async () => {
+    const { data } = await supabase
+      .from('cash_register')
+      .select('id')
+      .eq('user_id', user.id)
+      .eq('status', 'abierta')
+      .limit(1)
+      .single();
+
+    if (data) {
+      await supabase.from('cash_register').update({ status: 'cerrada', closed_at: new Date().toISOString() }).eq('id', data.id);
+      setCajaAbierta(false);
+      setShowCerrarModal(false);
+      setMovimientos([]);
+    }
+  };
+
+  const totales = operaciones.map(op => {
+    const movs = movimientos.filter(m => m.category === op);
+    const efectivo = movs.filter(m => m.method === 'efectivo').reduce((s, m) => s + Number(m.amount), 0);
+    const otros = movs.filter(m => m.method !== 'efectivo').reduce((s, m) => s + Number(m.amount), 0);
+    return { operacion: op, efectivo, otros, total: efectivo + otros };
+  });
+
+  const totalEfectivo = totales.reduce((s, t) => s + t.efectivo, 0);
+  const totalOtros = totales.reduce((s, t) => s + t.otros, 0);
+  const totalGeneral = totalEfectivo + totalOtros;
+
+  if (loading) {
+    return <div className="h-full bg-[#0f1219] flex items-center justify-center"><span className="text-gray-500">Cargando...</span></div>;
+  }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-800">Caja</h1>
-        <button className="btn-primary flex items-center gap-2">
-          <Plus className="w-4 h-4" />
-          Nuevo Movimiento
-        </button>
-      </div>
-
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-        <div className="stat-card border-l-4 border-emerald-500">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-emerald-100 rounded-xl flex items-center justify-center">
-              <TrendingUp className="w-5 h-5 text-emerald-600" />
-            </div>
-            <div>
-              <p className="text-sm text-gray-500">Ingresos</p>
-              <p className="text-xl font-bold text-emerald-600">${totalIngresos.toLocaleString()}</p>
-            </div>
-          </div>
-        </div>
-        <div className="stat-card border-l-4 border-red-500">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-red-100 rounded-xl flex items-center justify-center">
-              <TrendingDown className="w-5 h-5 text-red-600" />
-            </div>
-            <div>
-              <p className="text-sm text-gray-500">Egresos</p>
-              <p className="text-xl font-bold text-red-600">${totalEgresos.toLocaleString()}</p>
-            </div>
-          </div>
-        </div>
-        <div className="stat-card border-l-4 border-primary-500">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-primary-100 rounded-xl flex items-center justify-center">
-              <DollarSign className="w-5 h-5 text-primary-600" />
-            </div>
-            <div>
-              <p className="text-sm text-gray-500">Balance</p>
-              <p className="text-xl font-bold text-primary-600">${balance.toLocaleString()}</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="card">
-        <h2 className="text-lg font-bold text-gray-800 mb-4">Movimientos</h2>
-        {loading ? (
-          <div className="text-center py-12">
-            <div className="w-8 h-8 border-4 border-primary-200 border-t-primary-600 rounded-full animate-spin mx-auto"></div>
-          </div>
-        ) : transactions.length === 0 ? (
-          <div className="text-center py-12 text-gray-400">
-            <DollarSign className="w-12 h-12 mx-auto mb-3 opacity-40" />
-            <p>No hay movimientos ainda</p>
-          </div>
+    <div className="h-full bg-[#0f1219] p-4 flex flex-col">
+      <div className="flex items-center justify-between mb-4 flex-shrink-0">
+        <h1 className="text-xl font-bold text-white">Caja</h1>
+        {cajaAbierta ? (
+          <button onClick={() => setShowMovimientoModal(true)} className="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+            Carga de movimiento
+          </button>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="table-header">
-                  <th className="text-left px-4 py-3 rounded-l-lg">Tipo</th>
-                  <th className="text-left px-4 py-3">Descripción</th>
-                  <th className="text-left px-4 py-3">Fecha</th>
-                  <th className="text-left px-4 py-3">Método</th>
-                  <th className="text-right px-4 py-3 rounded-r-lg">Monto</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {transactions.map(t => (
-                  <tr key={t.id} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-4 py-3.5">
-                      {t.type === 'ingreso' ? (
-                        <span className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">
-                          <ArrowUpRight className="w-3 h-3" /> Ingreso
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center gap-1 text-xs font-semibold text-red-600 bg-red-50 px-2 py-0.5 rounded-full">
-                          <ArrowDownRight className="w-3 h-3" /> Egreso
-                        </span>
-                      )}
-                    </td>
-                    <td className="px-4 py-3.5 text-sm text-gray-700">{t.description}</td>
-                    <td className="px-4 py-3.5 text-sm text-gray-500">{new Date(t.created_at).toLocaleDateString('es-AR')}</td>
-                    <td className="px-4 py-3.5 text-sm text-gray-500 capitalize">{t.method}</td>
-                    <td className={`px-4 py-3.5 text-sm font-bold text-right ${t.type === 'ingreso' ? 'text-emerald-600' : 'text-red-600'}`}>
-                      {t.type === 'ingreso' ? '+' : '-'}${Number(t.amount).toLocaleString()}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <button onClick={() => setShowAbrirModal(true)} className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+            Abrir Caja
+          </button>
         )}
       </div>
+
+      {cajaAbierta && (
+        <div className="mb-4 flex-shrink-0">
+          <button onClick={() => setShowCerrarModal(true)} className="w-full bg-[#1a1f2e] border border-gray-700/50 rounded-xl py-4 flex items-center justify-center hover:bg-[#222839] transition-colors cursor-pointer">
+            <span className="text-emerald-400 font-bold text-sm tracking-widest uppercase">CERRAR CAJA</span>
+          </button>
+        </div>
+      )}
+
+      <div className="flex-1 overflow-auto">
+        <div className="bg-[#1a1f2e] border border-gray-700/50 rounded-xl overflow-hidden">
+          <table className="w-full text-sm">
+            <thead className="bg-[#151a26]">
+              <tr className="text-gray-400 text-left text-xs uppercase">
+                <th className="px-4 py-3 font-medium">Operación</th>
+                <th className="px-4 py-3 font-medium text-right">Efectivo</th>
+                <th className="px-4 py-3 font-medium text-right">Otros</th>
+                <th className="px-4 py-3 font-medium text-right">Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              {totales.map((t, i) => (
+                <tr key={i} className="border-t border-gray-700/30 text-gray-300">
+                  <td className="px-4 py-3">{t.operacion}</td>
+                  <td className="px-4 py-3 text-right">${t.efectivo.toLocaleString()}</td>
+                  <td className="px-4 py-3 text-right">${t.otros.toLocaleString()}</td>
+                  <td className="px-4 py-3 text-right">${t.total.toLocaleString()}</td>
+                </tr>
+              ))}
+              <tr className="border-t-2 border-gray-600 font-bold">
+                <td className="px-4 py-3 text-white">Totales:</td>
+                <td className="px-4 py-3 text-right text-emerald-400">${totalEfectivo.toLocaleString()}</td>
+                <td className="px-4 py-3 text-right text-emerald-400">${totalOtros.toLocaleString()}</td>
+                <td className="px-4 py-3 text-right text-emerald-400">${totalGeneral.toLocaleString()}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {showAbrirModal && (
+        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4" onClick={() => setShowAbrirModal(false)}>
+          <div className="bg-[#1a1f2e] border border-gray-700 rounded-2xl w-full max-w-sm p-6" onClick={e => e.stopPropagation()}>
+            <h2 className="text-lg font-bold text-white mb-4">Abrir Caja</h2>
+            <label className="block text-gray-400 text-xs font-medium mb-1">Monto inicial</label>
+            <input
+              type="number"
+              value={montoInicial}
+              onChange={e => setMontoInicial(e.target.value)}
+              placeholder="0"
+              className="w-full bg-[#0f1219] border border-gray-600 rounded-lg px-3 py-2 text-white text-sm mb-4"
+              autoFocus
+            />
+            <div className="flex justify-end gap-3">
+              <button onClick={() => setShowAbrirModal(false)} className="px-4 py-2 text-gray-400 hover:text-white text-sm">Cancelar</button>
+              <button onClick={abrirCaja} disabled={!montoInicial} className="bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white px-6 py-2 rounded-lg text-sm font-medium">Abrir</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showCerrarModal && (
+        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4" onClick={() => setShowCerrarModal(false)}>
+          <div className="bg-[#1a1f2e] border border-gray-700 rounded-2xl w-full max-w-sm p-6" onClick={e => e.stopPropagation()}>
+            <h2 className="text-lg font-bold text-white mb-2">Cerrar Caja</h2>
+            <p className="text-gray-400 text-sm mb-4">¿Estás seguro que querés cerrar la caja?</p>
+            <div className="flex justify-end gap-3">
+              <button onClick={() => setShowCerrarModal(false)} className="px-4 py-2 text-gray-400 hover:text-white text-sm">Cancelar</button>
+              <button onClick={cerrarCaja} className="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-lg text-sm font-medium">Cerrar</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showMovimientoModal && (
+        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4" onClick={() => setShowMovimientoModal(false)}>
+          <div className="bg-[#1a1f2e] border border-gray-700 rounded-2xl w-full max-w-sm p-6" onClick={e => e.stopPropagation()}>
+            <h2 className="text-lg font-bold text-white mb-4">Carga de movimiento</h2>
+            <p className="text-gray-400 text-sm">Seleccioná el tipo de movimiento a cargar:</p>
+            <div className="mt-4 space-y-2">
+              {['Venta de producto', 'Venta de servicio'].map(tipo => (
+                <button key={tipo} className="w-full bg-[#0f1219] border border-gray-600 hover:border-primary-500 rounded-lg px-4 py-3 text-left text-white text-sm transition-colors">
+                  {tipo}
+                </button>
+              ))}
+            </div>
+            <div className="flex justify-end mt-4">
+              <button onClick={() => setShowMovimientoModal(false)} className="px-4 py-2 text-gray-400 hover:text-white text-sm">Cerrar</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
